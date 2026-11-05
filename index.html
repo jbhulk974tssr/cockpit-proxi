@@ -3,268 +3,570 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cockpit Expert Proxi v2 — Diagnostic, Débits, Mobile & Relation Client</title>
+  <title>Cockpit Free Proxi — V3 Speed-Click</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
-    .bg-free-red { background-color: #e1000f; }
-    .text-free-red { color: #e1000f; }
-    .card { background-color: #1e293b; border: 1px solid #334155; }
-    .tab-active { background-color: #e1000f; color: white; border-color: #e1000f; }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    body { background-color: #090d16; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.6); }
+    .quick-card:hover { border-color: #e1000f; transform: translateY(-1px); }
     ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    ::-webkit-scrollbar-track { background: #090d16; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
-<body class="min-h-screen p-4 md:p-6">
+<body class="min-h-screen p-3 md:p-5">
 
-  <!-- HEADER -->
-  <header class="max-w-7xl mx-auto mb-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-700 pb-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
-        <span class="bg-free-red text-white px-2.5 py-1 rounded text-lg font-extrabold">FREE</span>
-        <span>Cockpit Expert Proxi <span class="text-xs bg-slate-800 border border-slate-600 text-emerald-400 px-2 py-0.5 rounded ml-1">v2.0 Full Stack</span></span>
-      </h1>
-      <p class="text-slate-400 text-xs md:text-sm mt-1">Diagnostic OSI, Checklists Freebox & Débits, Paramètres iOS/Android & Réponses Abonnés</p>
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl font-bold text-sm transform translate-y-24 opacity-0 transition-all duration-200 z-50 flex items-center gap-2">
+    <span>⚡ Copié ! Prêt à coller (Ctrl+V)</span>
+  </div>
+
+  <!-- HEADER ULTRA COMPACT -->
+  <header class="max-w-[1500px] mx-auto mb-4 glass rounded-2xl p-3.5 flex flex-wrap justify-between items-center gap-3">
+    <div class="flex items-center gap-3">
+      <div class="bg-[#e1000f] text-white font-black px-3 py-1.5 rounded-lg text-lg tracking-wider">FREE PROXI</div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold text-white">Cockpit Réponse Éclair V3</h1>
+          <span id="liveBadge" class="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold"></span>
+        </div>
+      </div>
     </div>
-    <div class="flex flex-wrap gap-2">
-      <button onclick="openModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3.5 py-2 rounded transition">
-        + Ajouter une fiche
+
+    <!-- VARIABLES RAPIDES EN HAUT (PRÉNOM ABONNÉ + CONSEILLER + MOMENT) -->
+    <div class="flex flex-wrap items-center gap-2">
+      <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs">
+        <span class="text-slate-400 mr-1.5">Abonné :</span>
+        <input id="clientName" type="text" placeholder="Prénom / M. X" oninput="refreshStudio()" class="bg-transparent text-amber-300 font-bold w-28 focus:outline-none">
+      </div>
+
+      <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs">
+        <span class="text-slate-400 mr-1.5">Horaire :</span>
+        <select id="timeSlot" onchange="refreshStudio()" class="bg-slate-950 text-white font-semibold focus:outline-none">
+          <option value="AUTO">⚡ Auto (Heure réelle)</option>
+          <option value="DAY">☀️ Journée (Bonjour / Belle journée)</option>
+          <option value="AFTERNOON">🌤️ Après-midi (Bonjour / Bon après-midi)</option>
+          <option value="EVENING">🌙 Soirée (Bonsoir / Belle soirée)</option>
+          <option value="WEEKEND">🎉 Week-end (Bon week-end)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs">
+        <span class="text-slate-400 mr-1.5">Signature :</span>
+        <input id="advisorName" type="text" value="Jean-Baptiste" oninput="saveAdvisor(); refreshStudio();" class="bg-transparent text-white font-semibold w-24 focus:outline-none">
+      </div>
+
+      <button onclick="openBulkModal()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow">
+        📥 Coller mes réponses d'origine
       </button>
-      <button onclick="exportData()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded transition">
-        ⬇ Exporter JSON
+      <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition shadow">
+        + 1 Réponse
       </button>
-      <label class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-semibold px-3.5 py-2 rounded transition cursor-pointer">
-        ⬆ Importer JSON
-        <input type="file" accept=".json" class="hidden" onchange="importData(event)">
-      </label>
+      <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold px-2.5 py-1.5 rounded-lg">
+        💾 Export
+      </button>
     </div>
   </header>
 
-  <!-- NAVIGATION PAR ONGLETS -->
-  <nav class="max-w-7xl mx-auto mb-6 flex flex-wrap gap-2">
-    <button onclick="switchTab('diag')" id="tab-diag" class="tab-active text-xs md:text-sm font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition">
-      🔍 1. Diagnostic & Réponses Abonnés
-    </button>
-    <button onclick="switchTab('freebox')" id="tab-freebox" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition">
-      ⚡ 2. Checklists Freebox, Débits & Optique (dBm)
-    </button>
-    <button onclick="switchTab('mobile')" id="tab-mobile" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition">
-      📱 3. Réglages Apple / Samsung / Xiaomi / Pixel
-    </button>
-    <button onclick="switchTab('links')" id="tab-links" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs md:text-sm font-bold px-4 py-2.5 rounded-lg border border-slate-700 transition">
-      🔗 4. Liens Officiels Free & Iliad
-    </button>
-  </nav>
+  <!-- BARRE DE PHRASES ÉCLAIR (1 CLIC = COPIÉ AVEC BONJOUR/BONSOIR + BELLE JOURNÉE/SOIRÉE) -->
+  <section class="max-w-[1500px] mx-auto mb-5 glass rounded-2xl p-3.5 border-l-4 border-l-[#e1000f]">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-bold uppercase tracking-wider text-red-400">⚡ Décroché & Relation Client en 1 Clic (Copie immédiate avec Bonjour/Bonsoir + Prénom + Belle journée/soirée) :</span>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+      <button onclick="copyInstant('accueil')" class="bg-slate-900 hover:bg-red-950/60 border border-slate-700 hover:border-red-500 p-2 rounded-xl text-left transition">
+        <div class="font-bold text-white">👋 1. Prise en charge</div>
+        <div class="text-[11px] text-slate-400 truncate">"Je prends en charge votre demande..."</div>
+      </button>
+      <button onclick="copyInstant('attente')" class="bg-slate-900 hover:bg-red-950/60 border border-slate-700 hover:border-red-500 p-2 rounded-xl text-left transition">
+        <div class="font-bold text-amber-300">⏳ 2. Vérif en cours</div>
+        <div class="text-[11px] text-slate-400 truncate">"Je vérifie votre dossier, un instant..."</div>
+      </button>
+      <button onclick="copyInstant('dispo')" class="bg-slate-900 hover:bg-red-950/60 border border-slate-700 hover:border-red-500 p-2 rounded-xl text-left transition">
+        <div class="font-bold text-sky-300">🏠 3. Dispo Abonné ?</div>
+        <div class="text-[11px] text-slate-400 truncate">"Êtes-vous devant vos équipements ?"</div>
+      </button>
+      <button onclick="copyInstant('suivi')" class="bg-slate-900 hover:bg-red-950/60 border border-slate-700 hover:border-red-500 p-2 rounded-xl text-left transition">
+        <div class="font-bold text-purple-300">📌 4. Mise en suivi</div>
+        <div class="text-[11px] text-slate-400 truncate">"Je garde votre dossier en suivi..."</div>
+      </button>
+      <button onclick="copyInstant('relance')" class="bg-slate-900 hover:bg-red-950/60 border border-slate-700 hover:border-red-500 p-2 rounded-xl text-left transition">
+        <div class="font-bold text-orange-300">🔔 5. Relance sans rép.</div>
+        <div class="text-[11px] text-slate-400 truncate">"Revenez vers nous dès que possible..."</div>
+      </button>
+      <button onclick="copyInstant('cloture')" class="bg-slate-900 hover:bg-red-950/60 border border-slate-700 hover:border-red-500 p-2 rounded-xl text-left transition">
+        <div class="font-bold text-emerald-300">✅ 6. Clôture résolu</div>
+        <div class="text-[11px] text-slate-400 truncate">"Tout est fonctionnel, je reste dispo..."</div>
+      </button>
+    </div>
+  </section>
 
-  <!-- GRILLE PRINCIPALE : CONTENU GAUCHE (2/3) + CONSTRUCTEUR DE RÉPONSE TOUJOURS VISIBLE À DROITE (1/3) -->
-  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <!-- CORPS PRINCIPAL -->
+  <main class="max-w-[1500px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-    <!-- COLONNE GAUCHE & CENTRALE (2/3) -->
-    <div class="lg:col-span-2 space-y-6">
+    <!-- COLONNE GAUCHE (8 COL) : RECHERCHE INSTANTANÉE & CARTES RÉPONSES -->
+    <div class="lg:col-span-8 space-y-4">
 
-      <!-- ========================================== -->
-      <!-- ONGLET 1 : DIAGNOSTIC & DEMANDES ABONNÉS   -->
-      <!-- ========================================== -->
-      <div id="view-diag" class="space-y-5">
-        <section class="card rounded-xl p-5 shadow-lg">
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-            Saisie de la demande abonné ou symptôme technique
-          </label>
-          <textarea id="subscriberInput" rows="2" 
-            placeholder="Tape un mot-clé : étape 2, erreur 80, débit, wifi, puk, mms, samsung, iphone, facture..."
-            class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-500 text-sm"
-            oninput="analyzeRequest()"></textarea>
-
-          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
-            <span class="text-xs text-slate-400">Interroger les sites officiels avec cette saisie :</span>
-            <div class="flex flex-wrap gap-2">
-              <button onclick="deepSearch('assistance')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1 rounded text-slate-200">
-                🔍 Assistance Free
-              </button>
-              <button onclick="deepSearch('mobile')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1 rounded text-slate-200">
-                📱 Free Mobile
-              </button>
-              <button onclick="deepSearch('all')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1 rounded text-slate-200">
-                🌐 Tout *.free.fr
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- FILTRES -->
-        <div class="flex flex-wrap gap-2">
-          <button onclick="filterCategory('ALL')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600">Tous</button>
-          <button onclick="filterCategory('FIBRE / BOX')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-sky-400">⚡ Fibre & Box</button>
-          <button onclick="filterCategory('WIFI / DÉBIT')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-amber-400">📶 Wi-Fi & Débits</button>
-          <button onclick="filterCategory('MOBILE')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-purple-400">📱 Mobile</button>
-          <button onclick="filterCategory('TV / OQEE')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-pink-400">📺 TV & OQEE</button>
-          <button onclick="filterCategory('ADMIN / FACTURE')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-emerald-400">📄 Compte & Facture</button>
+      <!-- BARRE DE RECHERCHE + FILTRES -->
+      <div class="glass rounded-2xl p-4 space-y-3">
+        <div class="flex gap-2">
+          <input id="searchInput" type="text" placeholder="🔍 Tape un mot-clé pour filtrer tes réponses (ex: étape 2, rdv, pto, wifi, télécommande, rib, puk, échange...)"
+            oninput="renderCards()"
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-[#e1000f]">
+          <button onclick="document.getElementById('searchInput').value=''; renderCards();" class="bg-slate-800 hover:bg-slate-700 px-3 rounded-xl text-xs text-slate-300">Effacer</button>
         </div>
 
-        <div id="resultsContainer" class="space-y-4"></div>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="setCat('ALL')" id="cat-ALL" class="cat-pill bg-[#e1000f] text-white text-xs font-bold px-3 py-1 rounded-lg">Toutes</button>
+            <button onclick="setCat('MES RÉPONSES')" id="cat-MES RÉPONSES" class="cat-pill bg-slate-800 text-amber-300 text-xs font-bold px-3 py-1 rounded-lg border border-amber-500/40">⭐ Mes Réponses</button>
+            <button onclick="setCat('FIBRE / BOX')" id="cat-FIBRE / BOX" class="cat-pill bg-slate-800 text-sky-300 text-xs font-semibold px-3 py-1 rounded-lg">⚡ Fibre & Box</button>
+            <button onclick="setCat('WIFI / DÉBIT')" id="cat-WIFI / DÉBIT" class="cat-pill bg-slate-800 text-emerald-300 text-xs font-semibold px-3 py-1 rounded-lg">📶 Wi-Fi & Débit</button>
+            <button onclick="setCat('TV / PLAYER')" id="cat-TV / PLAYER" class="cat-pill bg-slate-800 text-pink-300 text-xs font-semibold px-3 py-1 rounded-lg">📺 TV & OQEE</button>
+            <button onclick="setCat('MOBILE')" id="cat-MOBILE" class="cat-pill bg-slate-800 text-purple-300 text-xs font-semibold px-3 py-1 rounded-lg">📱 Mobile</button>
+            <button onclick="setCat('FACTURE / ADMIN')" id="cat-FACTURE / ADMIN" class="cat-pill bg-slate-800 text-orange-300 text-xs font-semibold px-3 py-1 rounded-lg">📄 Facture & Admin</button>
+          </div>
+
+          <div class="flex gap-1">
+            <button onclick="searchOfficial('assistance')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] px-2.5 py-1 rounded text-slate-300">🌐 Assistance Free ↗</button>
+            <button onclick="searchOfficial('oqee')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] px-2.5 py-1 rounded text-slate-300">📺 OQEE ↗</button>
+          </div>
+        </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- ONGLET 2 : CHECKLISTS FREEBOX, DÉBITS & dBm -->
-      <!-- ========================================== -->
-      <div id="view-freebox" class="hidden space-y-6">
+      <!-- GRILLE DES RÉPONSES PRÊTES À COPIER -->
+      <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
 
-        <!-- CALCULATEUR BUDGET OPTIQUE FTTH -->
-        <section class="card rounded-xl p-5 border-l-4 border-l-sky-500">
-          <h2 class="text-base font-bold mb-1">🔬 Vérificateur de Signal Optique FTTH (Puissance Rx en dBm)</h2>
-          <p class="text-xs text-slate-400 mb-3">Entre la valeur de réception optique (Rx) lue sur le diagnostic de la Freebox de l'abonné :</p>
-          <div class="flex flex-wrap items-center gap-3">
-            <input type="number" step="0.1" id="opticalRx" placeholder="Ex: -19.5" oninput="evaluateOptical()"
-              class="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm w-40 text-white">
-            <span class="text-xs text-slate-400">dBm</span>
-            <div id="opticalVerdict" class="text-xs font-semibold px-3 py-2 rounded bg-slate-800 text-slate-300 flex-1">
-              Saisis une valeur (ex: -18.4) pour voir le diagnostic Couche 1.
-            </div>
+    </div>
+
+    <!-- COLONNE DROITE (4 COL) : ASSEMBLEUR SUR-MESURE & LIENS -->
+    <div class="lg:col-span-4 space-y-4">
+
+      <section class="glass rounded-2xl p-4 border-t-4 border-t-emerald-500 sticky top-4">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-400">✍️ Aperçu & Modification avant envoi</h2>
+          <button onclick="copyStudio()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow transition">
+            📋 Copier ce message
+          </button>
+        </div>
+
+        <div class="flex gap-1.5 mb-2 text-[11px]">
+          <label class="flex items-center gap-1 cursor-pointer bg-slate-900 px-2 py-1 rounded border border-slate-700">
+            <input type="checkbox" id="includeIntro" checked onchange="refreshStudio()"> + Accroche Proxi
+          </label>
+          <label class="flex items-center gap-1 cursor-pointer bg-slate-900 px-2 py-1 rounded border border-slate-700">
+            <input type="checkbox" id="includeSign" checked onchange="refreshStudio()"> + Signature
+          </label>
+        </div>
+
+        <textarea id="studioTextarea" rows="10" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-slate-100 leading-relaxed focus:outline-none focus:border-emerald-500"></textarea>
+
+        <!-- BOUTONS DE FIN DE PHRASE SEULS -->
+        <div class="mt-3 pt-2.5 border-t border-slate-800">
+          <span class="text-[11px] text-slate-400 block mb-1.5">Copier uniquement une formule de politesse :</span>
+          <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+            <button onclick="rawCopy('Je vous souhaite une très belle journée ☀️')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 py-1.5 rounded text-amber-300 font-medium">☀️ Belle journée</button>
+            <button onclick="rawCopy('Je vous souhaite un très bon après-midi 🌤️')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 py-1.5 rounded text-orange-300 font-medium">🌤️ Bon après-midi</button>
+            <button onclick="rawCopy('Je vous souhaite une très belle soirée 🌙')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 py-1.5 rounded text-sky-300 font-medium">🌙 Belle soirée</button>
+            <button onclick="rawCopy('Je vous souhaite un excellent week-end 🎉')" class="bg-slate-900 hover:bg-slate-800 border border-slate-700 py-1.5 rounded text-emerald-300 font-medium">🎉 Bon week-end</button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <!-- COMPARATIF DÉBITS : CE QUE ÇA VAUT EN RÉEL -->
-        <section class="card rounded-xl p-5">
-          <h2 class="text-base font-bold mb-3">🚀 Comparatif des Freebox & Ce que valent vraiment les débits</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+      <!-- RACCOURCIS OFFICIELS -->
+      <section class="glass rounded-2xl p-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">🔗 Liens Officiels Rapides</h2>
+        <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <a href="https://assistance.free.fr/" target="_blank" class="bg-slate-900 hover:bg-slate-800 p-2 rounded-lg text-slate-200 border border-slate-800">Assistance Free ↗</a>
+          <a href="https://subscribe.free.fr/login/" target="_blank" class="bg-slate-900 hover:bg-slate-800 p-2 rounded-lg text-slate-200 border border-slate-800">Espace Freebox ↗</a>
+          <a href="https://mobile.free.fr/account/" target="_blank" class="bg-slate-900 hover:bg-slate-800 p-2 rounded-lg text-slate-200 border border-slate-800">Espace Mobile ↗</a>
+          <a href="https://assistance.oqee.tv/" target="_blank" class="bg-slate-900 hover:bg-slate-800 p-2 rounded-lg text-slate-200 border border-slate-800">Support OQEE ↗</a>
+          <a href="https://zimbra.free.fr/" target="_blank" class="bg-slate-900 hover:bg-slate-800 p-2 rounded-lg text-slate-200 border border-slate-800">Webmail Zimbra ↗</a>
+          <a href="http://mafreebox.freebox.fr/" target="_blank" class="bg-slate-900 hover:bg-slate-800 p-2 rounded-lg text-slate-200 border border-slate-800">Freebox OS ↗</a>
+        </div>
+      </section>
 
-            <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-bold text-sm text-red-400">Freebox Ultra</span>
-                <span class="bg-red-900/40 text-red-300 px-2 py-0.5 rounded">10G-EPON Symétrique</span>
-              </div>
-              <ul class="space-y-1 text-slate-300">
-                <li><b>Théorique :</b> Jusqu'à 8 Gbit/s Descendant et 8 Gbit/s Montant.</li>
-                <li><b>Wi-Fi :</b> Wi-Fi 7 Quad-Band (6 GHz + 5 GHz + 2.4 GHz).</li>
-                <li><b>Ce que ça vaut en réel :</b>
-                  <br>• Sur port RJ45 standard (1 GbE) : plafonné à ~940 Mbit/s.
-                  <br>• Sur port SFP+ 10G avec carte 10GbE : 6,5 à 7,8 Gbit/s réels.
-                  <br>• En Wi-Fi 7 (appareil compatible à 2m) : 1,8 à 3,5 Gbit/s.
-                </li>
-              </ul>
-              <button onclick="injectRawScript('Pour profiter pleinement des débits de votre Freebox Ultra (jusqu\'à 8 Gbit/s), notez qu\'un câble Ethernet branché sur l\'un des 4 ports jaunes classiques est physiquement limité à 1 Gbit/s (soit environ 940 Mbit/s réels) par la norme Gigabit Ethernet. Les débits supérieurs à 1 Gbit/s s\'obtiennent soit en cumulant plusieurs appareils simultanément, soit en Wi-Fi 7 sur un appareil compatible, soit via le port SFP+ 10G.')" class="mt-3 w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 py-1.5 rounded border border-slate-600 font-semibold">
-                💬 Charger l'explication débit Ultra →
-              </button>
-            </div>
+    </div>
 
-            <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-bold text-sm text-sky-400">Freebox Pop</span>
-                <span class="bg-sky-900/40 text-sky-300 px-2 py-0.5 rounded">PON Partagé 5 Gbit/s</span>
-              </div>
-              <ul class="space-y-1 text-slate-300">
-                <li><b>Théorique :</b> Jusqu'à 5 Gbit/s partagés Down / 700 Mbit/s (ou 900 Mbit/s) Up.</li>
-                <li><b>Wi-Fi :</b> Wi-Fi 7 (bi-bande sur les nouvelles révisions) ou Wi-Fi 6.</li>
-                <li><b>Ce que ça vaut en réel :</b>
-                  <br>• Sur le port RJ45 2,5 GbE : jusqu'à ~2,3 Gbit/s réels sur un PC muni d'une carte 2,5 GbE.
-                  <br>• Sur les 2 autres ports RJ45 (1 GbE) : jusqu'à ~940 Mbit/s.
-                  <br>• En Wi-Fi 5/6 courant : entre 350 et 850 Mbit/s à proximité.
-                </li>
-              </ul>
-              <button onclick="injectRawScript('Votre Freebox Pop délivre jusqu\'à 5 Gbit/s partagés entre vos équipements. Elle dispose à l\'arrière d\'un port Ethernet spécifique de 2,5 Gbit/s (permettant d\'atteindre environ 2,3 Gbit/s sur un ordinateur équipé d\'une carte réseau 2,5G) et de deux ports de 1 Gbit/s (plafonnant à environ 940 Mbit/s chacun). En Wi-Fi, le débit dépend directement de la norme supportée par votre téléphone ou ordinateur.')" class="mt-3 w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 py-1.5 rounded border border-slate-600 font-semibold">
-                💬 Charger l'explication débit Pop →
-              </button>
-            </div>
+  </main>
 
-            <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-bold text-sm text-amber-400">Freebox Delta</span>
-                <span class="bg-amber-900/40 text-amber-300 px-2 py-0.5 rounded">10G-EPON</span>
-              </div>
-              <ul class="space-y-1 text-slate-300">
-                <li><b>Théorique :</b> Jusqu'à 8 Gbit/s Down / 700 Mbit/s Up.</li>
-                <li><b>Wi-Fi :</b> Wi-Fi 6E (Tri-bande) ou Wi-Fi AC selon génération.</li>
-                <li><b>Ce que ça vaut en réel :</b>
-                  <br>• 4 ports RJ45 Gigabit (max 940 Mbit/s par port).
-                  <br>• 1 cage SFP+ 10G (nécessite module SFP+ RJ45 ou DAC pour dépasser 1 Gbit/s sur un seul PC).
-                </li>
-              </ul>
-            </div>
-
-            <div class="bg-slate-900 p-4 rounded-lg border border-slate-700">
-              <div class="flex justify-between items-center mb-2">
-                <span class="font-bold text-sm text-purple-400">Freebox Révolution (Light)</span>
-                <span class="bg-purple-900/40 text-purple-300 px-2 py-0.5 rounded">FTTH 1 Gbit/s</span>
-              </div>
-              <ul class="space-y-1 text-slate-300">
-                <li><b>Théorique :</b> Jusqu'à 1 Gbit/s Down / 600 à 900 Mbit/s Up.</li>
-                <li><b>Wi-Fi :</b> Wi-Fi 5 (802.11ac bi-bande 2.4 / 5 GHz).</li>
-                <li><b>Ce que ça vaut en réel :</b>
-                  <br>• En câble RJ45 : ~930 Mbit/s.
-                  <br>• En Wi-Fi 5 (5 GHz) : 250 à 500 Mbit/s près de la box.
-                  <br>• En Wi-Fi 2.4 GHz : 40 à 90 Mbit/s (portée longue mais débit limité).
-                </li>
-              </ul>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- CHECKLIST INTERACTIVE D'APPEL / TICKET -->
-        <section class="card rounded-xl p-5">
-          <div class="flex justify-between items-center mb-3">
-            <h2 class="text-base font-bold">✅ Checklist de Diagnostic Complet (Avant ouverture de ticket)</h2>
-            <button onclick="resetChecklist()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-slate-300">Réinitialiser</button>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs" id="interactiveChecklist">
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 1. Vérifier identité abonné & adresse du logement</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 2. Contrôler incident collectif NRO / PM sur le secteur</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 3. Vérifier l'étape affichée sur le Server (Étape 2, 3, 4, 6, 80)</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 4. Relever la puissance optique Rx/Tx (dBm) du module ONU/SFP</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 5. Faire vérifier la jarretière optique (PTO vert/bleu non pincé)</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 6. Vérifier l'alimentation électrique (FreePlug / USB-C officiel sans multiprise surchargée)</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 7. Si problème débit : isoler test RJ45 Ethernet vs Wi-Fi</label>
-            <label class="flex items-center gap-2 bg-slate-900 p-2.5 rounded cursor-pointer"><input type="checkbox" class="accent-red-600"> 8. Si ouverture ticket : recueillir les disponibilités de l'abonné + numéro de contact</label>
-          </div>
-        </section>
-
+  <!-- MODAL IMPORT EN MASSE DES RÉPONSES D'ORIGINE -->
+  <div id="bulkModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="glass max-w-2xl w-full rounded-2xl p-6 space-y-3 border border-amber-500/50">
+      <h3 class="text-base font-bold text-amber-300">📥 Importer toutes tes réponses déjà écrites d'un seul coup</h3>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Colle ci-dessous tes réponses d'origine. Pour en mettre plusieurs à la fois, sépare-les par une ligne contenant <b>---</b> ou utilise le format <b>Titre : Ton texte</b>. Elles seront toutes ajoutées dans l'onglet <b>⭐ Mes Réponses</b> !
+      </p>
+      <textarea id="bulkInput" rows="10" placeholder="Exemple :
+Étape 2 vérification câbles : Je vous invite à vérifier que la jarretière optique est bien branchée derrière la Freebox et sur le boîtier PTO.
+---
+Envoi nouveau matériel : Je viens de valider l'expédition de votre nouvel équipement en point relais. Vous recevrez un SMS dès sa mise à disposition.
+---
+Confirmation RDV Technicien : Votre rendez-vous technicien est bien confirmé. Merci de vous assurer que le boîtier fibre est accessible."
+        class="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white font-mono"></textarea>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeBulkModal()" class="px-4 py-2 bg-slate-800 rounded-lg text-xs">Annuler</button>
+        <button onclick="processBulkImport()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg text-xs font-bold text-white">⚡ Transformer en boutons 1-clic</button>
       </div>
+    </div>
+  </div>
 
-      <!-- ========================================== -->
-      <!-- ONGLET 3 : RÉGLAGES SMARTPHONES (IOS/ANDROID) -->
-      <!-- ========================================== -->
-      <div id="view-mobile" class="hidden space-y-5">
+  <!-- MODAL AJOUT D'UNE SEULE FICHE -->
+  <div id="addModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+    <div class="glass max-w-lg w-full rounded-2xl p-6 space-y-3 border border-slate-600">
+      <h3 class="text-base font-bold text-white">Ajouter ou Modifier une réponse</h3>
+      <input id="newTitle" type="text" placeholder="Titre court du bouton (ex: Échange Freebox Point Relais)" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+      <select id="newCat" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white">
+        <option value="MES RÉPONSES">⭐ MES RÉPONSES</option>
+        <option value="FIBRE / BOX">⚡ FIBRE / BOX</option>
+        <option value="WIFI / DÉBIT">📶 WIFI / DÉBIT</option>
+        <option value="TV / PLAYER">📺 TV / PLAYER</option>
+        <option value="MOBILE">📱 MOBILE</option>
+        <option value="FACTURE / ADMIN">📄 FACTURE / ADMIN</option>
+      </select>
+      <textarea id="newScript" rows="5" placeholder="Écris ta réponse (sans Bonjour ni Belle journée, ils sont ajoutés automatiquement au clic)..." class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-xs text-white"></textarea>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeAddModal()" class="px-4 py-2 bg-slate-800 rounded-lg text-xs">Annuler</button>
+        <button onclick="saveSingleCard()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs font-bold text-white">Enregistrer</button>
+      </div>
+    </div>
+  </div>
 
-        <!-- PARAMÈTRES APN OFFICIELS FREE -->
-        <section class="card rounded-xl p-5 border-l-4 border-l-purple-500">
-          <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
-            <h2 class="text-base font-bold">⚙️ Paramètres APN Officiels Free Mobile (Internet & MMS)</h2>
-            <button onclick="injectRawScript('Voici les paramètres officiels (APN) à vérifier dans votre téléphone pour rétablir Internet et les MMS :\n- APN Internet : Nom = Free / APN = free\n- APN MMS : Nom = Free MMS / APN = mmsfree / MMSC = http://mms.free.fr\nUne fois ces valeurs enregistrées, activez les données mobiles et redémarrez votre téléphone.')" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1 rounded font-semibold">
-              💬 Copier les APN pour l'abonné →
+  <script>
+    // =====================================================
+    // 1. PHRASES D'ACCROCHE ÉCLAIR (BARRE DU HAUT)
+    // =====================================================
+    const instantSnippets = {
+      accueil: "Je prends immédiatement en charge votre demande et je consulte votre dossier afin de vous apporter une réponse précise.",
+      attente: "Je procède actuellement aux vérifications techniques sur votre ligne. Merci de patienter quelques instants, je reviens vers vous tout de suite.",
+      dispo: "Afin que nous puissions réaliser quelques vérifications rapides ensemble, êtes-vous actuellement à votre domicile devant votre Freebox ?",
+      suivi: "Je conserve personnellement votre dossier en suivi au sein de notre équipe Free Proxi et je reviens vers vous dès que j'ai un nouvel élément.",
+      relance: "N'ayant pas eu de retour de votre part, je laisse cette conversation ouverte. N'hésitez pas à me répondre dès que vous serez disponible près de vos équipements.",
+      cloture: "Ravi d'avoir pu vous aider à rétablir la situation ! Toute votre équipe Free Proxi reste à votre écoute si vous avez la moindre question."
+    };
+
+    // =====================================================
+    // 2. RÉPONSES TERRAIN ULTRA-RAPIDES PAR DÉFAUT
+    // =====================================================
+    const defaultCards = [
+      {
+        id: 101,
+        category: "FIBRE / BOX",
+        title: "Étape 2 — Vérification Jarretière & PTO",
+        script: "Votre Freebox ne reçoit plus le signal optique (blocage à l'étape 2). Pouvez-vous vérifier que le câble fin de la fibre (entre le boîtier mural PTO et l'arrière de votre Freebox) est bien enclenché des deux côtés et qu'il n'est ni plié ni pincé ? Si le branchement est intact, confirmez-le-moi afin que je planifie l'intervention d'un technicien."
+      },
+      {
+        id: 102,
+        category: "FIBRE / BOX",
+        title: "Ouverture Ticket & Prise de RDV Technicien",
+        script: "Les vérifications à distance confirment la nécessité d'une intervention sur votre raccordement. J'ouvre immédiatement un ticket d'incident sur votre dossier. Vous allez recevoir un SMS/e-mail vous permettant de choisir directement le créneau de passage du technicien qui vous arrange le mieux."
+      },
+      {
+        id: 103,
+        category: "FIBRE / BOX",
+        title: "Étape 3 / Erreur 80 — Demande Adresse MAC",
+        script: "Votre Freebox reçoit bien la lumière optique mais bloque à l'authentification (Étape 3 / Erreur 80). Pouvez-vous me communiquer l'adresse MAC (série de 12 chiffres et lettres) inscrite sur l'étiquette blanche sous votre Freebox Server afin que je mette à jour votre ligne ?"
+      },
+      {
+        id: 104,
+        category: "FIBRE / BOX",
+        title: "Incident Collectif Secteur (NRO / PM)",
+        script: "Après vérification, une perturbation réseau collective impacte actuellement plusieurs abonnés de votre secteur. Vos équipements à domicile ne sont pas en cause. Nos équipes techniques sont déjà mobilisées pour rétablir la connexion au plus vite. Je garde votre dossier en suivi pour vous tenir informé."
+      },
+      {
+        id: 105,
+        category: "FIBRE / BOX",
+        title: "Échange Matériel en Point Relais (Chronopost/UPS)",
+        script: "Je viens de valider le remplacement de votre équipement défectueux. Votre nouveau matériel est en cours de préparation pour un envoi en Point Relais. Dès sa réception (notifiée par SMS), il vous suffira de remettre l'ancien matériel dans son carton d'origine et de le donner au commerçant en échange."
+      },
+      {
+        id: 106,
+        category: "WIFI / DÉBIT",
+        title: "Optimisation Wi-Fi & Redémarrage Canal",
+        script: "Les tests réalisés sur votre ligne confirment que le débit arrivant jusqu'à votre Freebox est optimal. Pour stabiliser votre Wi-Fi, je vous invite à redémarrer électriquement votre Freebox Server (afin qu'il sélectionne le canal radio le moins encombré) et à vérifier qu'il est posé dans un endroit dégagé. Vous pouvez aussi gérer votre Wi-Fi via l'application Freebox Connect."
+      },
+      {
+        id: 107,
+        category: "WIFI / DÉBIT",
+        title: "Séparation Bandes 2.4 GHz / 5 GHz (Objets connectés)",
+        script: "Pour connecter facilement vos équipements domotiques (caméra, imprimante, robot) qui nécessitent uniquement du 2,4 GHz, vous pouvez séparer les réseaux Wi-Fi depuis l'application Freebox Connect ou sur mafreebox.freebox.fr > Paramètres de la Freebox > Wi-Fi > Configuration > Séparer les cartes Wi-Fi."
+      },
+      {
+        id: 108,
+        category: "TV / PLAYER",
+        title: "Image figée / Erreur OQEE (Vider le cache)",
+        script: "Pour résoudre le blocage sur votre télévision, je vous invite à débrancher électriquement votre boîtier TV Player pendant 15 secondes puis à le rebrancher. Sur le Player Pop, vous pouvez également aller dans Paramètres (roue crantée en haut à droite) > Applications > OQEE by Free > Vider le cache."
+      },
+      {
+        id: 109,
+        category: "TV / PLAYER",
+        title: "Réinitialisation Télécommande Freebox",
+        script: "Si votre télécommande ne répond plus, retirez les piles, appuyez sur n'importe quelle touche pendant 5 secondes pour vider l'électricité résiduelle, puis insérez des piles neuves en vous plaçant tout près du boîtier TV. Redémarrez ensuite électriquement le Player TV pour relancer l'appairage Bluetooth."
+      },
+      {
+        id: 110,
+        category: "MOBILE",
+        title: "Récupération Code PUK (SIM Bloquée)",
+        script: "Vous pouvez obtenir votre code PUK à 8 chiffres immédiatement depuis votre Espace Abonné Free Mobile (mobile.free.fr), rubrique 'Mon Compte' > 'Mes informations' > 'Mon code PUK'. Dès qu'il sera saisi sur votre téléphone, vous pourrez définir un nouveau code PIN."
+      },
+      {
+        id: 111,
+        category: "FACTURE / ADMIN",
+        title: "Détail Facture & Mise à jour RIB/IBAN",
+        script: "Vous pouvez consulter le détail complet de vos factures en PDF et mettre à jour vos coordonnées bancaires (IBAN) directement depuis votre Espace Abonné sur subscribe.free.fr, rubrique 'Mon abonnement'. Si une ligne précise vous interroge, indiquez-moi son montant afin que nous la regardions ensemble."
+      },
+      {
+        id: 112,
+        category: "FACTURE / ADMIN",
+        title: "Procédure Déménagement Freebox",
+        script: "Pour conserver votre ancienneté lors de votre déménagement, ne résiliez surtout pas votre ligne : déclarez simplement votre nouvelle adresse sur subscribe.free.fr > Mon abonnement > Déménager mon abonnement, et emportez tous vos boîtiers Freebox dans votre nouveau logement."
+      }
+    ];
+
+    let cards = JSON.parse(localStorage.getItem('freeProxiCards_v3')) || defaultCards;
+    let activeCat = 'ALL';
+    let selectedBody = cards[0].script;
+
+    // =====================================================
+    // 3. GESTION DYNAMIQUE BONJOUR / BONSOIR / BELLE SOIRÉE
+    // =====================================================
+    function getPoliteness() {
+      const mode = document.getElementById('timeSlot').value;
+      const now = new Date();
+      const h = now.getHours();
+      const d = now.getDay();
+
+      let current = mode;
+      if (mode === 'AUTO') {
+        if ((d === 5 && h >= 17) || d === 6 || d === 0) current = 'WEEKEND';
+        else if (h >= 18 || h < 5) current = 'EVENING';
+        else if (h >= 13) current = 'AFTERNOON';
+        else current = 'DAY';
+      }
+
+      if (current === 'EVENING') {
+        return { hello: "Bonsoir", closing: "Je vous souhaite une très belle soirée 🌙", badge: "🌙 Soirée : Bonsoir + Belle soirée" };
+      }
+      if (current === 'AFTERNOON') {
+        return { hello: "Bonjour", closing: "Je vous souhaite un très bon après-midi 🌤️", badge: "🌤️ Après-midi : Bonjour + Bon après-midi" };
+      }
+      if (current === 'WEEKEND') {
+        return { hello: h >= 18 ? "Bonsoir" : "Bonjour", closing: "Je vous souhaite un excellent week-end 🎉", badge: "🎉 Week-end : Excellent week-end" };
+      }
+      return { hello: "Bonjour", closing: "Je vous souhaite une très belle journée ☀️", badge: "☀️ Journée : Bonjour + Belle journée" };
+    }
+
+    function buildFullMessage(bodyText) {
+      const p = getPoliteness();
+      document.getElementById('liveBadge').textContent = p.badge;
+
+      const client = document.getElementById('clientName').value.trim();
+      const advisor = document.getElementById('advisorName').value.trim();
+      const withIntro = document.getElementById('includeIntro').checked;
+      const withSign = document.getElementById('includeSign').checked;
+
+      const greeting = client ? `${p.hello} ${client},` : `${p.hello},`;
+      const intro = withIntro ? "\nJe fais suite à votre message. " : "\n";
+      const sign = withSign && advisor ? `\n${advisor}, votre conseiller Free Proxi` : "";
+
+      return `${greeting}\n${intro}${bodyText}\n\n${p.closing}${sign}`;
+    }
+
+    function refreshStudio() {
+      document.getElementById('studioTextarea').value = buildFullMessage(selectedBody);
+    }
+
+    function copyInstant(key) {
+      const text = instantSnippets[key];
+      selectedBody = text;
+      refreshStudio();
+      rawCopy(document.getElementById('studioTextarea').value);
+    }
+
+    function copyCardOneClick(id) {
+      const item = cards.find(c => c.id === id);
+      if (!item) return;
+      selectedBody = item.script;
+      refreshStudio();
+      rawCopy(document.getElementById('studioTextarea').value);
+    }
+
+    function editCardInStudio(id) {
+      const item = cards.find(c => c.id === id);
+      if (!item) return;
+      selectedBody = item.script;
+      refreshStudio();
+      showToast("✍️ Chargé à droite pour personnalisation");
+    }
+
+    function deleteCard(id) {
+      if (!confirm("Supprimer cette fiche ?")) return;
+      cards = cards.filter(c => c.id !== id);
+      localStorage.setItem('freeProxiCards_v3', JSON.stringify(cards));
+      renderCards();
+    }
+
+    function copyStudio() {
+      rawCopy(document.getElementById('studioTextarea').value);
+    }
+
+    function rawCopy(str) {
+      navigator.clipboard.writeText(str);
+      showToast("⚡ Copié ! Prêt à coller à l'abonné (Ctrl+V)");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerHTML = `<span>${msg}</span>`;
+      t.classList.remove('translate-y-24', 'opacity-0');
+      setTimeout(() => t.classList.add('translate-y-24', 'opacity-0'), 2000);
+    }
+
+    // =====================================================
+    // 4. RENDU DES CARTES & RECHERCHE
+    // =====================================================
+    function renderCards() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const grid = document.getElementById('cardsGrid');
+
+      const filtered = cards.filter(c => {
+        const matchCat = activeCat === 'ALL' || c.category === activeCat;
+        if (!q) return matchCat;
+        return matchCat && (c.title.toLowerCase().includes(q) || c.script.toLowerCase().includes(q));
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-2 glass rounded-xl p-6 text-center text-slate-400 text-xs">
+            Aucune réponse trouvée. Clique sur <b>📥 Coller mes réponses d'origine</b> en haut pour importer tes textes, ou sur <b>🌐 Assistance Free ↗</b>.
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(c => `
+        <div class="glass quick-card rounded-xl p-4 flex flex-col justify-between transition duration-150">
+          <div>
+            <div class="flex justify-between items-start gap-2 mb-1.5">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">${c.category}</span>
+              <button onclick="deleteCard(${c.id})" class="text-[11px] text-slate-500 hover:text-red-400" title="Supprimer">✕</button>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-2">${c.title}</h3>
+            <p class="text-xs text-slate-300 leading-relaxed line-clamp-4 mb-3 bg-slate-950/70 p-2.5 rounded-lg border border-slate-800/80">${c.script}</p>
+          </div>
+
+          <div class="flex gap-2 pt-1">
+            <button onclick="copyCardOneClick(${c.id})" class="flex-1 bg-[#e1000f] hover:bg-red-600 text-white text-xs font-bold py-2 px-3 rounded-lg shadow transition">
+              ⚡ Copier (1-Clic)
+            </button>
+            <button onclick="editCardInStudio(${c.id})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2 px-3 rounded-lg border border-slate-600 transition">
+              Adapter →
             </button>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs bg-slate-900 p-3.5 rounded-lg">
-            <div>
-              <strong class="text-purple-400 block mb-1">APN 1 : Internet / Data</strong>
-              <p>• <b>Nom :</b> Free</p>
-              <p>• <b>APN :</b> <code class="bg-slate-800 px-1.5 py-0.5 rounded text-emerald-400">free</code></p>
-              <p>• <b>MCC :</b> 208 | <b>MNC :</b> 15</p>
-              <p>• <b>Type d'APN :</b> default, supl, hipri</p>
-            </div>
-            <div>
-              <strong class="text-purple-400 block mb-1">APN 2 : MMS</strong>
-              <p>• <b>Nom :</b> Free MMS</p>
-              <p>• <b>APN :</b> <code class="bg-slate-800 px-1.5 py-0.5 rounded text-emerald-400">mmsfree</code></p>
-              <p>• <b>MMSC :</b> <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sky-400">http://mms.free.fr</code></p>
-              <p>• <b>Type d'APN :</b> mms</p>
-            </div>
-          </div>
-        </section>
+        </div>
+      `).join('');
+    }
 
-        <!-- GUIDES PAR MARQUE (APPLE, SAMSUNG, XIAOMI, PIXEL/ANDROID) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+    function setCat(cat) {
+      activeCat = cat;
+      document.querySelectorAll('.cat-pill').forEach(b => {
+        b.classList.remove('bg-[#e1000f]', 'text-white');
+        b.classList.add('bg-slate-800');
+      });
+      const active = document.getElementById('cat-' + cat);
+      if (active) {
+        active.classList.remove('bg-slate-800');
+        active.classList.add('bg-[#e1000f]', 'text-white');
+      }
+      renderCards();
+    }
 
-          <!-- APPLE IPHONE -->
-          <div class="card rounded-xl p-4 space-y-2">
-            <h3 class="text-sm font-bold text-white flex items-center justify-between">
-              <span>🍏 Apple iPhone (iOS)</span>
-              <span class="text-[11px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">VoLTE / 5G / MMS</span>
-            </h3>
-            <ul class="space-y-1.5 text-slate-300">
-              <li><b>5G & VoLTE :</b> Réglages &gt; Données cellulaires &gt; Options &gt; Voix et données &gt; Choisir <b>5G Auto</b> (ou 4G) et activer <b>VoLTE</b>.</li>
-              <li><b>Appels Wi-Fi (VoWiFi) :</b> Réglages &gt; Données cellulaires &gt; Appels Wi-Fi &gt; Activer <b>Appels Wi-Fi sur cet iPhone</b>.</li>
-              <li><b>MMS vers Android bloqués :</b> Réglages &gt; Apps &gt; Messages &gt; Activer <b>Service MMS</b> et <b>Envoyer par SMS</b>.</li>
-              <li><b>Réinitialiser réseau :</b> Réglages &gt; Général &gt; Transférer ou réinitialiser l'iPhone &gt; Réinitialiser &gt; <b>Réinitialiser les réglages réseau</b>.</li>
-            </ul>
-            <button onclick="injectRawScript('Sur votre iPhone, je vous invite à vérifier ces 3 réglages rapides :\n1. Allez dans Réglages > Données cellulaires > App
+    // =====================================================
+    // 5. IMPORT EN MASSE DES RÉPONSES D'ORIGINE
+    // =====================================================
+    function openBulkModal() { document.getElementById('bulkModal').classList.replace('hidden', 'flex'); }
+    function closeBulkModal() { document.getElementById('bulkModal').classList.replace('flex', 'hidden'); }
+    function openAddModal() { document.getElementById('addModal').classList.replace('hidden', 'flex'); }
+    function closeAddModal() { document.getElementById('addModal').classList.replace('flex', 'hidden'); }
+
+    function processBulkImport() {
+      const raw = document.getElementById('bulkInput').value.trim();
+      if (!raw) return alert("Colle au moins une réponse.");
+
+      // Découpe soit par "---", soit par double saut de ligne
+      const blocks = raw.includes('---') ? raw.split(/---+/) : raw.split(/\n\s*\n/);
+      let count = 0;
+
+      blocks.reverse().forEach(block => {
+        const clean = block.trim();
+        if (!clean) return;
+
+        let title = "Réponse personnalisée";
+        let script = clean;
+
+        if (clean.includes(':')) {
+          const parts = clean.split(':');
+          if (parts[0].length < 55) {
+            title = parts[0].trim();
+            script = parts.slice(1).join(':').trim();
+          }
+        } else {
+          title = clean.slice(0, 42) + "...";
+        }
+
+        cards.unshift({
+          id: Date.now() + Math.floor(Math.random() * 10000),
+          category: "MES RÉPONSES",
+          title,
+          script
+        });
+        count++;
+      });
+
+      localStorage.setItem('freeProxiCards_v3', JSON.stringify(cards));
+      closeBulkModal();
+      setCat('MES RÉPONSES');
+      showToast(`✅ ${count} réponses ajoutées en boutons 1-clic !`);
+    }
+
+    function saveSingleCard() {
+      const title = document.getElementById('newTitle').value.trim();
+      const category = document.getElementById('newCat').value;
+      const script = document.getElementById('newScript').value.trim();
+      if (!title || !script) return alert("Titre et texte obligatoires.");
+
+      cards.unshift({ id: Date.now(), category, title, script });
+      localStorage.setItem('freeProxiCards_v3', JSON.stringify(cards));
+      closeAddModal();
+      renderCards();
+      showToast("✅ Réponse enregistrée !");
+    }
+
+    function searchOfficial(type) {
+      const q = document.getElementById('searchInput').value.trim() || 'freebox';
+      const url = type === 'oqee' 
+        ? `https://www.google.fr/search?q=site:assistance.oqee.tv+${encodeURIComponent(q)}`
+        : `https://www.google.fr/search?q=site:assistance.free.fr+${encodeURIComponent(q)}`;
+      window.open(url, '_blank');
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cards, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = "mes-reponses-proxi.json";
+      a.click();
+    }
+
+    function saveAdvisor() {
+      localStorage.setItem('freeProxiAdvisor', document.getElementById('advisorName').value);
+    }
+
+    const savedAdv = localStorage.getItem('freeProxiAdvisor');
+    if (savedAdv) document.getElementById('advisorName').value = savedAdv;
+    refreshStudio();
+    renderCards();
+  </script>
+</body>
+</html>
