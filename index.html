@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cockpit Expert Proxi — Diagnostic & Relation Client</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    .free-red { color: #e1000f; }
+    .bg-free-red { background-color: #e1000f; }
+    .card { background-color: #1e293b; border: 1px solid #334155; }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-6">
+
+  <!-- HEADER -->
+  <header class="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
+        <span class="bg-free-red text-white px-2.5 py-1 rounded text-lg font-extrabold">FREE</span>
+        <span>Cockpit Expert Proxi <span class="text-xs bg-slate-700 text-emerald-400 px-2 py-0.5 rounded ml-2">Local & GitHub Ready</span></span>
+      </h1>
+      <p class="text-slate-400 text-sm mt-1">Analyseur de demandes abonnés, diagnostic OSI, générateur de réponses & portails officiels Iliad</p>
+    </div>
+    <div class="flex gap-2">
+      <button onclick="openModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded transition">
+        + Ajouter une fiche / cas
+      </button>
+      <button onclick="exportData()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium px-4 py-2 rounded transition">
+        Exporter JSON (GitHub)
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- COLONNE GAUCHE & CENTRE : MOTEUR D'ANALYSE ABONNÉ -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- ZONE DE SAISIE DEMANDE ABONNÉ -->
+      <section class="card rounded-xl p-5 shadow-lg">
+        <label class="block text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          1. Demande de l'abonné ou symptôme technique
+        </label>
+        <textarea id="subscriberInput" rows="3" 
+          placeholder="Colle le message de l'abonné ou tape les mots-clés (ex: bloqué étape 2, perte de débit wifi, PTO arraché, code PUK, erreur 80, mail zimbra...)"
+          class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-red-500 text-base"
+          oninput="analyzeRequest()"></textarea>
+
+        <!-- BOUTONS DE RECHERCHE DYNAMIQUE -->
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-800">
+          <span class="text-xs text-slate-400">Recherche externe ciblée avec ta saisie :</span>
+          <div class="flex flex-wrap gap-2">
+            <button onclick="deepSearch('assistance')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1.5 rounded text-slate-200 transition">
+              🔍 Chercher sur Assistance Free
+            </button>
+            <button onclick="deepSearch('mobile')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1.5 rounded text-slate-200 transition">
+              📱 Chercher sur Free Mobile
+            </button>
+            <button onclick="deepSearch('all')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs px-3 py-1.5 rounded text-slate-200 transition">
+              🌐 Recherche Globale *.free.fr
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- FILTRES RAPIDES -->
+      <div class="flex flex-wrap gap-2">
+        <button onclick="filterCategory('ALL')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600">Tous les cas</button>
+        <button onclick="filterCategory('FIBRE / BOX')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-sky-400">⚡ Fibre & Freebox</button>
+        <button onclick="filterCategory('WIFI / LAN')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-amber-400">📶 Wi-Fi & Débit</button>
+        <button onclick="filterCategory('MOBILE')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-purple-400">📱 Free Mobile</button>
+        <button onclick="filterCategory('ADMIN / FACTURE')" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-full border border-slate-600 text-emerald-400">📄 Compte & Facture</button>
+      </div>
+
+      <!-- RÉSULTATS DYNAMIQUES & SCRIPTS DE RÉPONSE -->
+      <div id="resultsContainer" class="space-y-4">
+        <!-- Injecté par JS -->
+      </div>
+
+    </div>
+
+    <!-- COLONNE DROITE : LIENS OFFICIELS & OUTILS MÉTIER -->
+    <div class="space-y-6">
+
+      <!-- GÉNÉRATEUR DE TRAME RELATION CLIENT -->
+      <section class="card rounded-xl p-5 shadow-lg border-t-4 border-t-red-600">
+        <h2 class="text-base font-bold mb-2 flex items-center justify-between">
+          <span>💬 Constructeur de Réponse Proxi</span>
+          <button onclick="copyCustomReply()" class="text-xs bg-red-600 hover:bg-red-500 text-white px-2.5 py-1 rounded">Copier</button>
+        </h2>
+        <div class="space-y-2 text-xs">
+          <input type="text" id="clientName" placeholder="Prénom / Nom de l'abonné" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200" oninput="updateReplyPreview()">
+          <textarea id="customReplyArea" rows="6" class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-slate-200 font-mono text-xs leading-relaxed"></textarea>
+        </div>
+      </section>
+
+      <!-- ANNUAIRE OFFICIEL FREE / ILIAD -->
+      <section class="card rounded-xl p-5 shadow-lg">
+        <h2 class="text-base font-bold mb-3 border-b border-slate-700 pb-2">🔗 Hub Officiel Free & Groupe Iliad</h2>
+        <div id="linksContainer" class="space-y-4 text-sm">
+          <!-- Injecté par JS -->
+        </div>
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL AJOUT DE FICHE -->
+  <div id="addModal" class="fixed inset-0 bg-black/75 hidden items-center justify-center p-4 z-50">
+    <div class="card max-w-lg w-full rounded-xl p-6 space-y-4">
+      <h3 class="text-lg font-bold">Ajouter une fiche diagnostic locale</h3>
+      <input id="newTitle" type="text" placeholder="Titre (ex: Erreur 80 - Remplacement Freebox)" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
+      <select id="newCategory" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
+        <option value="FIBRE / BOX">FIBRE / BOX</option>
+        <option value="WIFI / LAN">WIFI / LAN</option>
+        <option value="MOBILE">MOBILE</option>
+        <option value="ADMIN / FACTURE">ADMIN / FACTURE</option>
+      </select>
+      <input id="newKeywords" type="text" placeholder="Mots-clés séparés par des virgules (ex: erreur 80, mac, adresse, étape 3)" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
+      <textarea id="newDiag" rows="3" placeholder="Diagnostic technique (OSI) & Vérifications..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm"></textarea>
+      <textarea id="newScript" rows="3" placeholder="Réponse type à envoyer à l'abonné..." class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm"></textarea>
+      <input id="newUrl" type="text" placeholder="URL officielle Free associée (https://...)" class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm">
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-700 rounded text-sm">Annuler</button>
+        <button onclick="saveNewCard()" class="px-4 py-2 bg-emerald-600 rounded text-sm font-bold">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. BASE DE LIENS OFFICIELS FREE / ILIAD
+    // ==========================================
+    const officialLinks = [
+      {
+        group: "Portails & Espaces Abonnés",
+        items: [
+          { name: "Assistance Officielle Free", url: "https://assistance.free.fr/" },
+          { name: "Espace Abonné Freebox", url: "https://subscribe.free.fr/login/" },
+          { name: "Espace Abonné Free Mobile", url: "https://mobile.free.fr/account/" },
+          { name: "Portail Freebox", url: "https://www.free.fr/freebox/" },
+          { name: "Portail Free Mobile", url: "https://mobile.free.fr/" },
+          { name: "OQEE by Free (TV Web)", url: "https://oqee.tv/" },
+          { name: "Webmail Zimbra Free", url: "https://zimbra.free.fr/" }
+        ]
+      },
+      {
+        group: "Réseau, Cartes & Diagnostic",
+        items: [
+          { name: "Carte Éligibilité & Couverture Fibre", url: "https://www.free.fr/freebox/carte-fibre-optique/" },
+          { name: "Carte Couverture Mobile 4G/5G", url: "https://mobile.free.fr/couverture/" },
+          { name: "Freebox OS (Accès local abonné)", url: "http://mafreebox.freebox.fr/" },
+          { name: "Annuaire des Boutiques Free", url: "https://www.free.fr/boutiques/" }
+        ]
+      },
+      {
+        group: "Groupe Iliad & B2B (Xavier Niel)",
+        items: [
+          { name: "Groupe Iliad (Site Corporate)", url: "https://www.iliad.fr/" },
+          { name: "Free Pro (Entreprises)", url: "https://pro.free.fr/" },
+          { name: "Scaleway (Cloud & Datacenters)", url: "https://www.scaleway.com/" },
+          { name: "Présentation Free Proxi", url: "https://www.free.fr/freebox/free-proxi/" }
+        ]
+      }
+    ];
+
+    // ==========================================
+    // 2. BASE DE CONNAISSANCES MÉTIER INITIALE
+    // ==========================================
+    const defaultKnowledgeBase = [
+      {
+        id: 1,
+        category: "FIBRE / BOX",
+        title: "Freebox bloquée en Étape 2 (Perte de signal optique / xDSL)",
+        keywords: ["étape 2", "etape 2", "signal", "pto", "fibre", "coupure", "pon", "jarretière", "rouge"],
+        osi: "Couche 1 (Physique) : Absence de continuité optique entre le NRO/PM et le module SFP/ONU de la Freebox.",
+        checks: [
+          "Vérifier que la jarretière optique n'est ni pincée, ni pliée à 90°, ni débranchée côté PTO (boîtier mural) et côté Freebox.",
+          "Faire vérifier l'absence de poussière ou de dommage visible sur le connecteur vert (SC/APC) ou bleu.",
+          "Contrôler sur les outils internes les valeurs de puissance optique (Rx en dBm) et d'éventuels incidents collectifs sur le PM/NRO."
+        ],
+        script: "Je fais suite à votre signalement concernant le blocage de votre Freebox à l'étape 2. Ce message indique que le signal optique n'arrive plus jusqu'à votre boîtier. Dans un premier temps, je vous invite à vérifier que le câble fin de la fibre (entre le boîtier mural PTO et l'arrière de votre Freebox) est bien enclenché et qu'il n'est ni plié ni pincé. Si le branchement est intact, je lance immédiatement l'ouverture d'un ticket d'incident afin de planifier l'intervention d'un technicien sur votre ligne.",
+        url: "https://assistance.free.fr/articles/721"
+      },
+      {
+        id: 2,
+        category: "WIFI / LAN",
+        title: "Lenteur Wi-Fi / Débit faible / Coupures sans fil",
+        keywords: ["wifi", "wi-fi", "lent", "débit", "debit", "rame", "coupure", "portée", "répéteur", "repeteur", "canal"],
+        osi: "Couche 1 & 2 (Physique Radio / Liaison) : Saturation spectrale (2.4 GHz vs 5/6 GHz) ou atténuation matérielle.",
+        checks: [
+          "Isoler la cause : le débit est-il conforme en Ethernet RJ45 sur le Server ? Si oui, la ligne Fibre est hors de cause.",
+          "Vérifier le positionnement du Server (éviter meuble fermé, aquarium, proximité immédiate d'appareils Bluetooth/micro-ondes).",
+          "Conseiller l'application Freebox Connect pour diagnostiquer la couverture ou dissocier les bandes 2.4 GHz / 5 GHz si un équipement ancien décroche.",
+          "Vérifier l'éligibilité au Répéteur Wi-Fi Pop."
+        ],
+        script: "J'ai bien pris connaissance de vos difficultés liées à la connexion Wi-Fi. Après vérification technique de votre ligne, le signal arrivant jusqu'à votre Freebox est parfaitement optimal. Afin de stabiliser votre réseau sans fil à domicile, je vous recommande de surélever légèrement votre Freebox dans un espace dégagé et d'effectuer un redémarrage électrique de celle-ci (ce qui lui permettra de sélectionner automatiquement le canal radio le moins encombré). Vous pouvez également gérer et tester votre couverture directement depuis l'application mobile Freebox Connect.",
+        url: "https://assistance.free.fr/univers/freebox"
+      },
+      {
+        id: 3,
+        category: "FIBRE / BOX",
+        title: "Freebox bloquée en Étape 3 ou Erreur 80 (Authentification MAC)",
+        keywords: ["étape 3", "etape 3", "erreur 80", "synchronisation", "authentification", "mac", "inversion"],
+        osi: "Couche 2 (Liaison de données) : Le signal optique est présent (Couche 1 OK), mais l'adresse MAC de la Freebox n'est pas reconnue sur la route optique attendue.",
+        checks: [
+          "Erreur 80 : l'adresse MAC détectée sur la ligne ne correspond pas à celle enregistrée sur le dossier de l'abonné (suite à un échange de box ou inversion de route optique au PM).",
+          "Vérifier le numéro de série / adresse MAC du Server auprès de l'abonné et mettre à jour le dossier ou déclencher une vérification de brassage au PM."
+        ],
+        script: "Votre Freebox affiche une erreur d'authentification (Étape 3 / Erreur 80). Cela signifie que le signal optique arrive bien à votre domicile, mais que l'identifiant matériel de votre boîtier nécessite une synchronisation sur notre réseau. Pouvez-vous me confirmer l'adresse MAC inscrite sur l'étiquette située sous votre Freebox Server afin que je procède immédiatement à la mise à jour de votre ligne ?",
+        url: "https://assistance.free.fr/"
+      },
+      {
+        id: 4,
+        category: "MOBILE",
+        title: "Carte SIM bloquée (Code PUK) / Problème Réseau Mobile (4G/5G/VoLTE)",
+        keywords: ["puk", "pin", "sim", "mobile", "réseau", "reseau", "appel", "4g", "5g", "mms", "apn", "esim"],
+        osi: "Couche 1 à 3 (Radio & Réseau cellulaire) : Authentification SIM ou configuration APN.",
+        checks: [
+          "Code PUK : disponible directement dans l'Espace Abonné Mobile > Mon Compte > Mes informations > Mon code PUK.",
+          "Data / MMS : vérifier la configuration des APN (Internet : 'free' / MMS : 'mmsfree') et l'activation des données mobiles.",
+          "Consulter la carte de couverture ou les pannes d'antennes relais du secteur."
+        ],
+        script: "Pour débloquer votre carte SIM à l'aide du code PUK, vous pouvez le récupérer instantanément depuis votre Espace Abonné Free Mobile (rubrique 'Mes informations' > 'Mon code PUK'). Si votre demande concerne une difficulté de réception ou d'accès à Internet mobile, je vous invite à redémarrer votre téléphone afin de forcer une nouvelle accroche sur l'antenne relais la plus proche.",
+        url: "https://mobile.free.fr/account/"
+      },
+      {
+        id: 5,
+        category: "ADMIN / FACTURE",
+        title: "Explication de facture / Accès Espace Abonné / Déménagement",
+        keywords: ["facture", "prélèvement", "prelevement", "rib", "iban", "déménagement", "demenagement", "identifiant", "mot de passe"],
+        osi: "Gestion Administrative & Relation Client",
+        checks: [
+          "Identifiant Freebox : fbx... (8 chiffres) ou adresse email de contact.",
+          "En cas de déménagement : déclarer le déménagement depuis l'Espace Abonné Freebox > Mon abonnement > Déménager mon abonnement pour conserver l'ancienneté."
+        ],
+        script: "Je fais le point avec vous concernant votre demande administrative. Vous pouvez retrouver le détail complet de vos factures téléchargeables en PDF ainsi que la gestion de vos coordonnées directement depuis votre Espace Abonné sur subscribe.free.fr. Je reste à votre entière disposition dans cette discussion si vous souhaitez que nous vérifiions une ligne de facturation spécifique ensemble.",
+        url: "https://subscribe.free.fr/login/"
+      }
+    ];
+
+    let kb = JSON.parse(localStorage.getItem('freeProxiKB')) || defaultKnowledgeBase;
+    let activeCategory = 'ALL';
+
+    // ==========================================
+    // 3. FONCTIONS D'AFFICHAGE & RECHERCHE
+    // ==========================================
+    function renderLinks() {
+      const container = document.getElementById('linksContainer');
+      container.innerHTML = officialLinks.map(group => `
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">${group.group}</h3>
+          <ul class="space-y-1">
+            ${group.items.map(link => `
+              <li>
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" 
+                   class="flex items-center justify-between px-2.5 py-1.5 rounded bg-slate-800/60 hover:bg-slate-700 text-slate-200 transition text-xs">
+                  <span>${link.name}</span>
+                  <span class="text-slate-400">↗</span>
+                </a>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      `).join('');
+    }
+
+    function analyzeRequest() {
+      const query = document.getElementById('subscriberInput').value.toLowerCase().trim();
+      const container = document.getElementById('resultsContainer');
+
+      let filtered = kb.filter(item => {
+        const matchCat = activeCategory === 'ALL' || item.category === activeCategory;
+        if (!query) return matchCat;
+        const terms = query.split(/\s+/);
+        const content = (item.title + ' ' + item.keywords.join(' ') + ' ' + item.osi + ' ' + item.script).toLowerCase();
+        return matchCat && terms.some(t => t.length > 2 && content.includes(t));
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="card rounded-xl p-6 text-center text-slate-400">
+            <p class="mb-2">Aucune fiche locale directe pour cette saisie.</p>
+            <p class="text-xs">Utilise les boutons <b>"Chercher sur Assistance Free"</b> juste au-dessus pour interroger directement les serveurs officiels avec cette demande, ou clique sur <b>"+ Ajouter une fiche"</b>.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <article class="card rounded-xl p-5 shadow-md hover:border-slate-500 transition">
+          <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
+            <div>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-red-400 border border-slate-700">${item.category}</span>
+              <h3 class="text-base font-bold text-white mt-1">${item.title}</h3>
+            </div>
+            <a href="${item.url}" target="_blank" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded text-sky-400 border border-slate-700">
+              Fiche Officielle Free ↗
+            </a>
+          </div>
+
+          <div class="bg-slate-900/90 border-l-4 border-amber-500 p-3 rounded text-xs text-slate-300 mb-3">
+            <strong class="text-amber-400 block mb-1">🔬 Diagnostic Technique (Modèle OSI) :</strong>
+            ${item.osi}
+            <ul class="list-disc list-inside mt-1.5 space-y-1 text-slate-300">
+              ${item.checks.map(c => `<li>${c}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="bg-slate-900/90 border-l-4 border-emerald-500 p-3 rounded text-xs text-slate-200">
+            <div class="flex justify-between items-center mb-1">
+              <strong class="text-emerald-400">💬 Proposition de réponse abonné :</strong>
+              <button onclick="useScript(${item.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-[11px] font-semibold">
+                Charger dans le constructeur →
+              </button>
+            </div>
+            <p class="italic text-slate-300">"${item.script}"</p>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function filterCategory(cat) {
+      activeCategory = cat;
+      analyzeRequest();
+    }
+
+    function useScript(id) {
+      const item = kb.find(i => i.id === id);
+      if (!item) return;
+      const client = document.getElementById('clientName').value.trim() || 'Bonjour';
+      const greeting = client === 'Bonjour' ? 'Bonjour,' : `Bonjour ${client},`;
+      document.getElementById('customReplyArea').value = `${greeting}\n\n${item.script}\n\nRestant à votre écoute,\nVotre conseiller Free Proxi`;
+    }
+
+    function updateReplyPreview() {
+      const current = document.getElementById('customReplyArea').value;
+      const client = document.getElementById('clientName').value.trim();
+      if (!current) {
+        document.getElementById('customReplyArea').value = `Bonjour ${client},\n\n\n\nRestant à votre écoute,\nVotre conseiller Free Proxi`;
+      }
+    }
+
+    function copyCustomReply() {
+      const textarea = document.getElementById('customReplyArea');
+      textarea.select();
+      navigator.clipboard.writeText(textarea.value);
+    }
+
+    // Recherche dynamique sur les sites officiels Free
+    function deepSearch(target) {
+      const q = document.getElementById('subscriberInput').value.trim() || 'assistance';
+      let searchUrl = '';
+      if (target === 'assistance') {
+        searchUrl = `https://www.google.fr/search?q=site:assistance.free.fr+${encodeURIComponent(q)}`;
+      } else if (target === 'mobile') {
+        searchUrl = `https://www.google.fr/search?q=site:mobile.free.fr+${encodeURIComponent(q)}`;
+      } else {
+        searchUrl = `https://www.google.fr/search?q=site:free.fr+${encodeURIComponent(q)}`;
+      }
+      window.open(searchUrl, '_blank');
+    }
+
+    // Gestion de l'ajout de fiches locales
+    function openModal() { document.getElementById('addModal').classList.remove('hidden'); document.getElementById('addModal').classList.add('flex'); }
+    function closeModal() { document.getElementById('addModal').classList.add('hidden'); document.getElementById('addModal').classList.remove('flex'); }
+
+    function saveNewCard() {
+      const title = document.getElementById('newTitle').value.trim();
+      const category = document.getElementById('newCategory').value;
+      const keywords = document.getElementById('newKeywords').value.split(',').map(k => k.trim()).filter(Boolean);
+      const diag = document.getElementById('newDiag').value.trim();
+      const script = document.getElementById('newScript').value.trim();
+      const url = document.getElementById('newUrl').value.trim() || 'https://assistance.free.fr/';
+
+      if (!title || !script) return alert('Le titre et la réponse type sont requis.');
+
+      kb.unshift({
+        id: Date.now(),
+        category,
+        title,
+        keywords,
+        osi: diag,
+        checks: ["Vérification personnalisée ajoutée localement."],
+        script,
+        url
+      });
+
+      localStorage.setItem('freeProxiKB', JSON.stringify(kb));
+      closeModal();
+      analyzeRequest();
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(kb, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", "base-connaissances-proxi.json");
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    }
+
+    // Initialisation au chargement
+    renderLinks();
+    analyzeRequest();
+    updateReplyPreview();
+  </script>
+</body>
+</html>
