@@ -331,4 +331,1074 @@
         </div>
         <div class="dyn-group">
             <span>📞 N° / Relais :</span>
-            <input type="text" id="dynExtra" class="dyn-input" placeholder
+            <input type="text" id="dynExtra" class="dyn-input" placeholder="N° tél ou Point Relais" style="width:140px" oninput="renderCards()">
+        </div>
+        <div class="dyn-group">
+            <button class="btn-mini primary" onclick="openAddModal()">+ Ajouter une trame</button>
+            <button class="btn-mini" onclick="exportCustom()">💾 Export JSON</button>
+        </div>
+    </div>
+
+    <!-- FILTRES ET RECHERCHE -->
+    <div class="filters">
+        <select id="categorySelect" class="category-select" onchange="renderCards()">
+            <option value="all">📁 Tous les pôles</option>
+        </select>
+        <input type="text" id="searchInput" class="search-bar" oninput="renderCards()" placeholder="🔍 Mot-clé ou demande abonné (ex: ODR, RIO, eSIM, FreePlug, 8bit, GAMOT...)" autocomplete="off">
+        <button class="chip" onclick="deepSearch('assistance')" title="Chercher cette saisie sur Assistance Free">🌐 Chercher Site Free</button>
+        <button id="favOnly" class="chip" onclick="toggleFavOnly()">⭐ Favoris</button>
+        <button id="themeBtn" class="chip" onclick="cycleTheme()" title="Changer de thème"></button>
+    </div>
+
+    <nav class="poles" id="poleBar" aria-label="Pôles"></nav>
+    <div class="hint"><kbd>/</kbd> rechercher · <kbd>Entrée</kbd> copier le 1er résultat · <kbd>Échap</kbd> effacer · Les variables entre crochets se remplissent automatiquement avec la barre du haut</div>
+
+    <nav class="links" id="officialLinks" aria-label="Liens officiels Free"></nav>
+
+    <div id="counter" class="counter"></div>
+    <div class="grid" id="cardsContainer"></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- MODAL AJOUT DE NOUVELLE TRAME -->
+    <div class="modal-backdrop" id="addModal">
+        <div class="modal-box">
+            <h3>➕ Ajouter une nouvelle trame locale</h3>
+            <select id="newCat" class="dyn-select" style="padding:10px"></select>
+            <input type="text" id="newTitle" class="dyn-input" style="padding:10px" placeholder="Titre de la trame (ex: Remplacement Jarretière Optique)">
+            <label style="font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="newExpert"> Marquer comme modèle ⭐ [Expert]
+            </label>
+            <textarea id="newText" style="height:140px; margin:0;" placeholder="Texte de la réponse (termine par 'Belle journée à vous 😊' pour qu'il s'adapte dynamiquement le soir)..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button class="btn-mini" onclick="closeAddModal()">Annuler</button>
+                <button class="btn-mini primary" onclick="saveNewTrame()">Enregistrer la trame</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseModels = [
+            // =========================================================================
+            // PÔLE 1 : 🤝 GESTION DU CONTACT, SUIVI & CLÔTURE (RELATIONNEL)
+            // =========================================================================
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Prise en charge de la demande (Accusé de réception)",
+                expert: false,
+                text: `J'ai bien pris en charge votre demande, merci de nous avoir contactés. J'étudie dès maintenant les éléments de votre dossier et je reviens vers vous très rapidement avec une réponse précise.\n\nÀ bientôt 😊`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Délais de traitement (Forte affluence)",
+                expert: false,
+                text: `En raison d’un grand nombre de demandes actuellement, nos délais de traitement sont exceptionnellement allongés. Nous vous prions de bien vouloir nous en excuser. Soyez assuré que chaque demande est traitée avec la plus grande attention par notre équipe, par ordre d’arrivée.\n\nAttention : chaque nouveau message de relance vous replace automatiquement en fin de file, ce qui peut rallonger le délai de prise en charge.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Demande incomplète (Suite appel 3244)",
+                expert: false,
+                text: `Vous avez tenté de joindre votre assistance Free Proxi au 3244, mais nous n'avons pas le détail de votre demande.\n\nNotre équipe utilise également cette messagerie écrite pour traiter vos sollicitations beaucoup plus rapidement que par téléphone. Pouvez-vous m'expliquer votre besoin par écrit en répondant à ce message afin que je puisse vous aider au mieux ?\n\nDans l'attente de votre retour,`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Contact croisé : Depuis FREEBOX pour MOBILE",
+                expert: false,
+                text: `Vous nous contactez actuellement depuis votre dossier Freebox, mais votre demande concerne un forfait Free Mobile.\n\nPour des raisons de sécurité et d'accès à votre dossier, je vous invite à nous écrire directement depuis votre Espace Abonné Free Mobile (https://mobile.free.fr/account) ou à appeler le 3244 (choix n°1) puis à répondre au SMS/e-mail reçu.\n\nEn vous remerciant de votre compréhension, à tout de suite sur votre dossier Free Mobile !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Contact croisé : Depuis MOBILE pour FREEBOX",
+                expert: false,
+                text: `Vous nous contactez actuellement depuis votre ligne Free Mobile, mais votre demande concerne votre abonnement Freebox.\n\nPour pouvoir accéder à vos outils de diagnostic, je vous invite à revenir vers moi depuis votre Espace Abonné Freebox (https://moncompte.free.fr) ou à appeler le 3244 (choix n°2) puis à répondre au SMS/e-mail reçu.\n\nEn vous remerciant de votre compréhension, à tout de suite sur votre dossier Freebox !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Appel manqué court (Proposition de rappel)",
+                expert: false,
+                text: `N'ayant pas réussi à vous joindre par téléphone, je vous ai laissé un message vocal sur votre numéro [Numéro].\n\nLorsque vous serez disponible, je vous invite au choix à :\n📅 Programmer un rappel directement en nous indiquant vos créneaux de disponibilité ;\n📞 Répondre à ce message en précisant vos disponibilités ainsi que le numéro sur lequel je peux vous joindre ;\n📩 Dialoguer directement avec moi par écrit à la suite de ce message.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture Appel Manqué (Sans retour)",
+                expert: false,
+                text: `J'ai tenté de vous joindre par téléphone sans succès et vous ai laissé un message vocal. Sans retour de votre part, je me permets de clôturer temporairement votre demande.\n\nJe reste bien entendu disponible en cas de besoin : notre conversation étant historisée, nous pourrons la reprendre à tout moment là où nous l'avons laissée en répondant simplement à ce message 😊.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nBonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Assistance en Langue des Signes Française (Abonnés sourds ou malentendants)",
+                expert: false,
+                text: `Free propose un service d’assistance en Langue des Signes Française (LSF), par vidéo ou par écrit, pour les abonnés sourds ou malentendants. Nos équipes sont disponibles du lundi au vendredi de 8h à 20h.\n\nPour les contacter :\n1. Cliquez sur « Nous contacter », en bas de toutes les pages du site Free (rubrique Aide & Contact).\n2. Sélectionnez l’abonnement concerné : Freebox ou mobile Free.\n3. Dans la rubrique « Par vidéo en langue des signes française », cliquez sur « Nous contacter ».\n4. Saisissez l’identifiant et le mot de passe de votre Espace Abonné.\n5. Choisissez l’assistance LSF par webcam ou par chat.\n\nUne fenêtre s’ouvre et vous êtes mis en relation avec un conseiller. Ce service est exclusivement réservé aux abonnés sourds ou malentendants.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Satcli (Explication de l'enquête 1 à 5 étoiles)",
+                expert: false,
+                text: `Merci beaucoup ! 😊\n\nVous allez recevoir un petit lien d’évaluation. Il porte sur la prise en charge de votre demande (l’écoute, la réactivité et le suivi), et non sur la réponse apportée.\n\nVous pourrez laisser une note de 1 (pas satisfait) à 5 (très satisfait), ainsi qu’un petit commentaire ⭐\n\nExcellente journée à vous ☀️`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture Standard",
+                expert: false,
+                text: `Je reste disponible en cas de besoin.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture Rapide",
+                expert: false,
+                text: `Super ! N'hésitez pas si vous avez d'autres demandes.\n\nJe vous invite également à me laisser un retour via le petit lien qui vous sera envoyé, cela encourage beaucoup votre équipe Free Proxi ⭐.\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture OK (Services fonctionnels)",
+                expert: false,
+                text: `Je constate que vos services sont à présent pleinement fonctionnels. Je reste disponible en cas de besoin 😊.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture suite SWAP (Nouveau matériel reçu)",
+                expert: false,
+                text: `Je vois que vous avez bien réceptionné votre nouveau matériel et que tout est fonctionnel 😊. Je reste bien sûr disponible en cas de besoin.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture suite Intervention Technicien",
+                expert: false,
+                text: `Je constate que suite à l'intervention de notre technicien, vos services sont à présent pleinement fonctionnels. Je me permets donc de clôturer votre demande d'assistance. Cela ne vous empêche pas de reprendre la discussion à tout moment si vous le souhaitez, nous conservons tout l'historique de nos échanges 😊.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture suite DERCO (Fin d'incident collectif)",
+                expert: false,
+                text: `Je constate que suite à l'intervention de nos équipes réseau, l'incident collectif qui vous impactait est désormais résolu. N'hésitez pas à me recontacter en cas de besoin 😉.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture suite Mise en relation accompagnée (Service concerné)",
+                expert: false,
+                text: `Suite à notre échange, la mise en relation avec notre service [Nom du service] a bien été réalisée avec mon accompagnement. Ce service, le mieux placé pour traiter votre demande, prend désormais votre dossier en charge.\n\nJe clôture donc ma prise en charge de mon côté, mais je reste disponible si vous avez la moindre question.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nBelle journée à vous 😊`
+            },
+
+            // =========================================================================
+            // PÔLE 2 : 🛠️ DIAGNOSTIC & DÉPANNAGE RÉSEAU FIXE (FIBRE / xDSL)
+            // =========================================================================
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "⭐ [Expert] Diagnostic Fibre / Box bloquée (Étapes 2, 3 ou 4)",
+                expert: true,
+                text: `Suite à l'analyse de votre ligne, votre Freebox ne parvient pas à synchroniser le signal optique (blocage en étape [2 / 3 / 4]).\n\nAvant de planifier l'intervention d'un technicien à votre domicile, je vous invite à effectuer ces trois vérifications rapides sur votre installation :\n1. Câblage optique : Vérifiez que la jarretière optique (le câble fin, souvent blanc ou jaune à embouts verts/bleus) n'est ni pliée, ni pincée, et qu'elle est bien enfoncée jusqu'au "clic" côté Freebox et côté boîtier fibre mural (PTO).\n2. Alimentation : Assurez-vous que vos Freebox utilisent leurs blocs d'alimentation d'origine, branchés directement sur une prise murale (évitez les multiprises si possible).\n3. Redémarrage : Débranchez électriquement le Server pendant 30 secondes, puis rebranchez-le.\n\nSi le blocage persiste après ces vérifications, répondez directement à ce message en me précisant vos créneaux de disponibilité afin que j'ouvre un ticket d'incident et planifie un rendez-vous technique.\n\nBonne journée,`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "⭐ [Expert] Suivi de Ticket d'incident & Remboursement",
+                expert: true,
+                text: `Je fais suite à votre demande concernant l'incident en cours sur votre ligne. Votre ticket d'incident est bien ouvert et pris en charge par nos équipes techniques.\n\n* Suivi en temps réel : Vous pouvez consulter l'avancement précis des opérations à tout moment depuis votre Espace Abonné, rubrique Mon Assistance, ou sur l'application mobile Freebox Espace Abonné.\n* Continuité de service (Backup) : Si vous disposez d'un forfait Free Mobile, n'hésitez pas à utiliser le partage de connexion de votre smartphone en attendant le rétablissement de la fibre.\n* Dédommagement : Dès la clôture officielle de votre ticket d'incident, vous pourrez effectuer une demande de remboursement au prorata de la durée de coupure directement depuis votre Espace Abonné.\n\nJe garde un œil sur votre dossier et reviens vers vous dès que j'ai un retour des équipes terrain.\n\nBonne journée,`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "DERCO en cours (Panne collective secteur)",
+                expert: false,
+                text: `Un incident réseau s'est déclaré sur votre secteur, affectant actuellement plusieurs connexions Fibre et ADSL en Ille-et-Vilaine. Nos techniciens sont mobilisés sur le terrain pour résoudre cette panne au plus vite.\n\nNos équipes restent mobilisées afin de rétablir durablement le service sur toute la zone.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "DERCO : Estimation de délai",
+                expert: false,
+                text: `À ce stade, nous n'avons pas encore de communication définitive sur l'heure exacte de rétablissement. D'après les premiers retours terrain, le dépannage pourrait prendre jusqu'à [Durée/Date], mais il ne s'agit que d'une estimation prévisionnelle susceptible d'évoluer.\n\nNos équipes mettent tout en œuvre pour réparer le réseau Fibre au plus vite, je vous tiens informé de la suite des événements.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "DERCO Résolu (Redémarrage requis)",
+                expert: false,
+                text: `En raison d'un grand nombre de sollicitations, je n'ai pas pu vous rappeler immédiatement et j'en suis navré. Un incident réseau collectif a eu lieu ce matin et nos équipes techniques ont rétabli la connexion globale 😊.\n\nS'il vous manque encore des services, je vous invite à redémarrer électriquement vos deux boîtiers en commençant par le Freebox Server (celui qui affiche l'heure), puis votre Player TV.\n\nNous nous excusons pour la gêne occasionnée. Bonne journée à vous !`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Ticket Incident Fibre 1 (Demande de l'étape affichée)",
+                expert: false,
+                text: `Un ticket d'incident Fibre a bien été ouvert sur votre ligne. Rassurez-vous, nous mettons tout en œuvre pour rétablir vos services dans les meilleurs délais.\n\nPour affiner mon diagnostic, pouvez-vous m'indiquer ce qu'affiche l'écran de votre Freebox Server actuellement (l'heure, ou blocage en étape 2, 3, 4...) ?\n\nDans l'attente de votre retour,`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Ticket Incident Fibre 2 (Manipulation jarretière optique)",
+                expert: false,
+                text: `Effectivement, nous ne parvenons plus à joindre votre Freebox à distance. Même si rien n'a été touché dans votre installation, je vous invite à effectuer cette manipulation précise :\n1. Débranchez délicatement le câble Fibre (entre la Freebox et le boîtier mural PTO) en faisant attention au petit clip de sécurité sur l'embout.\n2. Détendez complètement ce câble fin et assurez-vous qu'aucun meuble ou objet n'exerce une pression, une tension ou un pincement dessus.\n3. Rebranchez-le bien droit jusqu'au "clic", puis redémarrez électriquement votre Freebox.\n\nPouvez-vous m'indiquer si la Freebox dépasse l'étape de blocage après cela ?`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Reboot constant ONU V1 (Test convertisseur optique)",
+                expert: false,
+                text: `Le redémarrage en boucle de votre box peut provenir du boîtier convertisseur optique (ONU) branché à l'arrière. Ce convertisseur utilise un embout spécial sur lequel est reliée l'alimentation électrique (emplacement 12V).\n\nPouvez-vous retirer ce convertisseur de la Freebox, séparer le câble d'alimentation de cet embout, puis rebrancher directement le câble d'alimentation seul sur la Freebox (en laissant l'ONU de côté) ? Dites-moi si la Freebox reste bien allumée ainsi.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Test croisé électrique (Inversion FreePlugs Server/Player)",
+                expert: false,
+                text: `Pour déterminer l'origine exacte de la panne électrique, nous devons réaliser un test croisé :\n1. Branchez d'abord votre Freebox directement sur une autre prise électrique murale fonctionnelle.\n2. Si elle ne s'allume toujours pas, inversez les deux blocs d'alimentation (FreePlugs) entre votre Freebox Server et votre boîtier Player TV : branchez l'alimentation de la box Internet sur le boîtier TV, et inversement.\n\nMerci de m'indiquer l'état des voyants (allumé/éteint/couleur) de chaque boîtier AVANT et APRÈS l'inversion. Cela nous permettra de savoir s'il faut remplacer uniquement le bloc d'alimentation, la Freebox, ou les deux.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Reset Usine Freebox Server",
+                expert: false,
+                text: `Pour corriger ce dysfonctionnement, je vous invite à effectuer une réinitialisation d'usine de votre Freebox Server (le boîtier principal qui affiche l'heure) :\n1. Débranchez puis rebranchez électriquement la Freebox.\n2. Dès que le logo "Free" apparaît sur l'écran, appuyez immédiatement sur l'une des flèches en façade.\n3. Dans le menu qui s'affiche, descendez jusqu'à "Paramétrage d'usine" et validez avec la flèche de droite.\n4. Une fois l'heure réaffichée, redémarrez une dernière fois la box électriquement (sans toucher aux flèches).\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Téléphonie fixe Freebox : Pas de tonalité",
+                expert: false,
+                text: `Pour résoudre l’absence de tonalité sur votre ligne téléphonique Freebox, voici les vérifications à effectuer :\n\n1. Si vous avez souscrit récemment, patientez quelques jours après la réception de votre Freebox : l’activation du numéro 09 peut prendre jusqu’à 72h.\n2. Redémarrez votre Freebox.\n3. Vérifiez que votre téléphone est bien raccordé à votre Freebox.\n4. Dans l’application Free, vérifiez l’état du service téléphonique : si l’icône Téléphone est cerclée de rouge, le service est inactif (ou le matériel défectueux). Testez alors votre installation avec un autre bloc d’alimentation.\n5. Essayez avec un autre téléphone (filaire de préférence), puis avec un autre adaptateur téléphonique : certains rares appareils ne sont pas reconnus par la Freebox.\n\nSi le problème persiste après ces tests, n’hésitez pas à revenir vers nous.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Ticket ADSL & Escalade Orange (GAMOT)",
+                expert: false,
+                text: `Votre ticket d’incident ADSL est bien ouvert et actuellement en cours de traitement par nos services :\n\n* Vérification chez vous : assurez-vous que le câble téléphonique RJ11 (port DSL) est correctement enfoncé au dos de votre Freebox et sur votre prise murale, puis effectuez un redémarrage électrique de la box.\n* Diagnostic technique : un technicien Free va dans un premier temps réaliser les vérifications et tests nécessaires sur nos équipements réseau et votre ligne.\n* Intervention extérieure (si nécessaire) : si ces tests confirment que le dysfonctionnement se situe sur la boucle locale cuivre gérée par l’opérateur d’infrastructure (Orange), une intervention sera alors mandatée auprès de leurs services (ticket GAMOT).\n\nNous faisons le nécessaire et nous revenons vers vous très prochainement avec des nouvelles précises sur l’évolution de votre dossier.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "RDV Technicien : Envoi lien Planning (GRDV) ou À confirmer",
+                expert: false,
+                text: `Suite à l'ouverture de votre ticket d'incident, l'intervention d'un technicien à votre domicile est nécessaire.\n\nUn e-mail vient de vous être envoyé contenant le lien vers notre planning : je vous invite à y sélectionner directement le créneau qui vous convient le mieux. Si vous préférez, indiquez-moi vos disponibilités ici et je validerai le rendez-vous pour vous 😊.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "RDV Technicien : Confirmation & Check-list obligatoire",
+                expert: false,
+                text: `Je vous confirme l’intervention de notre technicien le [Date] entre [Heure début] et [Heure fin].\n\nPour que ce rendez-vous se déroule dans les meilleures conditions, voici quelques rappels importants :\n📞 Notre technicien peut vous appeler au préalable depuis un numéro masqué ou commençant par 01, 06 ou 07 : gardez votre téléphone à portée de main.\n🏠 L’accès à vos prises téléphoniques ou fibre (PTO) doit être totalement dégagé (meubles et objets lourds déplacés).\n👤 Une personne majeure doit impérativement être présente durant toute la durée du créneau.\n🐕 Vos éventuels animaux de compagnie doivent être isolés dans une autre pièce.\n💲 L’intervention est entièrement gratuite.\n\n🕰️ Un empêchement ? Vous pouvez annuler ou reporter le rendez-vous au moins 8h à l’avance, directement ou en nous contactant, nous nous occupons de tout. Cela permet d’éviter la facturation de 49 € pour déplacement à tort.\n\nJe reste disponible si vous avez la moindre question avant l’intervention.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Retard Technicien (Rassurance)",
+                expert: false,
+                text: `Je vous rassure, votre rendez-vous d'aujourd'hui est bien maintenu. Il arrive que le technicien prenne un léger retard en raison du trafic routier, d'une intervention précédente complexe, ou parce qu'il effectue d'abord des vérifications techniques sur l'armoire de rue extérieure avant de sonner chez vous 😊.\n\nMerci beaucoup pour votre patience, il va arriver au plus vite.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                title: "Solutions d'attente & Pose Box 4G (Backup)",
+                expert: false,
+                text: `En attendant le rétablissement de votre ligne, voici les solutions temporaires pour rester connecté 😊 :\n🔸 Partage de connexion : Si vous avez un forfait mobile avec suffisamment de data, activez le partage de connexion de votre smartphone pour connecter vos appareils en Wi-Fi.\n🔸 Boîtier Backup 4G : Une intervention peut être programmée pour installer une Box 4G de prêt (sous réserve que la couverture mobile Free soit bonne à l'intérieur de votre logement).\n🔸 Télévision : Vous pouvez brancher votre câble d'antenne TNT directement sur votre téléviseur ou utiliser l'application Free TV sur smartphone/tablette : https://tv.free.fr\n\nBelle journée à vous 😊`
+            },
+
+            // =========================================================================
+            // PÔLE 3 : 📶 DÉBIT, WI-FI & ÉCOSYSTÈME LOCAL (LAN)
+            // =========================================================================
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "⭐ [Expert] Optimisation du Wi-Fi (Lenteurs, coupures ou portée)",
+                expert: true,
+                text: `Le débit arrivant jusqu'à votre Freebox Server est optimal, mais votre connexion sans fil (Wi-Fi) semble perturbée par l'environnement de votre logement.\n\nPour stabiliser votre connexion et gagner en vitesse dès maintenant :\n* Positionnement du Server : Placez la Freebox dans un endroit ouvert et surélevé (évitez l'intérieur d'un meuble fermé, le sol, ou la proximité immédiate de la TV et d'un micro-ondes).\n* Application Freebox Connect : Téléchargez l'application officielle pour lancer un diagnostic Wi-Fi de vos appareils et vérifier sur quelle bande de fréquence (2,4 GHz, 5 GHz ou 6 GHz) ils sont connectés.\n* Répéteur Wi-Fi Free : Si votre logement comporte des murs épais ou un étage, vous pouvez commander un Répéteur Wi-Fi Pop/Wi-Fi 7 directement depuis votre Espace Abonné (inclus sur demande selon votre offre).\n\nJe reste à votre disposition si vous souhaitez que nous fassions le point sur la configuration de vos bandes de fréquences.\n\nBonne journée,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "⭐ [Expert] Ouverture de ports (NAT/PAT) & IP Full-Stack",
+                expert: true,
+                text: `Pour ouvrir les ports de votre Freebox (pour une console de jeux, un serveur NAS ou des caméras de surveillance) et optimiser votre connexion :\n\n1. Vérification de votre adresse IP (IP Full-Stack) : Par défaut, l'adresse IPv4 peut être partagée entre plusieurs abonnés, ce qui limite la plage de ports disponibles. Pour obtenir une adresse IP dédiée gratuitement avec tous les ports (1 à 65535) :\n   * Rendez-vous sur votre Espace Abonné Freebox > rubrique Ma Freebox > Demander une adresse IP fixe V4 full-stack.\n   * Redémarrez électriquement votre Freebox Server après un délai de 30 minutes pour appliquer le changement.\n2. Redirection des ports sur Freebox OS :\n   * Connectez-vous à l'interface de gestion de votre box via un navigateur web sur http://mafreebox.freebox.fr.\n   * Allez dans Paramètres de la Freebox > mode Avancé > Gestion des ports.\n   * Cliquez sur Ajouter une redirection et renseignez l'IP locale de votre équipement, le protocole (TCP/UDP) et les numéros de ports souhaités. (Astuce : pensez à fixer l'adresse IP locale de votre appareil dans l'onglet DHCP > Baux statiques au préalable).\n\nDites-moi si vous avez besoin d'aide sur un numéro de port en particulier !\n\nBonne journée,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "⭐ [Expert] Passage de la Freebox en Mode Bridge (Routeur externe)",
+                expert: true,
+                text: `Si vous souhaitez utiliser votre propre routeur ou système Wi-Fi Mesh derrière la Freebox, je vous recommande de passer votre Freebox Server en Mode Bridge afin d'éviter les conflits réseau (double NAT).\n\nProcédure d'activation :\n1. Connectez-vous à votre interface de gestion sur http://mafreebox.freebox.fr (ou via l'application mobile Freebox Connect > Plus > Mode de réseau).\n2. Allez dans Paramètres de la Freebox > mode Avancé > Mode réseau.\n3. Remplacez Mode routeur par Mode bridge, validez sur OK, puis redémarrez votre Freebox Server.\n\n⚠️ Points d'attention importants en Mode Bridge :\n* Le Wi-Fi de la Freebox Server (ainsi que des éventuels Répéteurs Free) et sa fonction routeur/DHCP sont désactivés : c'est votre routeur personnel qui doit gérer l'ensemble du réseau.\n* Branchez le port WAN de votre routeur personnel sur l'un des ports Ethernet de la Freebox.\n* Si vous avez un boîtier TV Freebox Player Révolution ou Devialet, il doit rester branché directement sur la Freebox Server pour conserver les flux TV (le Player Pop et l'Apple TV fonctionnent quant à eux très bien directement derrière votre routeur personnel).\n\nJe reste disponible si vous avez besoin de précisions pour le branchement de votre équipement.\n\nBonne journée,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Accéder à Freebox OS (Première connexion & mot de passe oublié)",
+                expert: false,
+                text: `Je vous guide pour accéder à votre interface Freebox OS, depuis un ordinateur connecté à votre Freebox :\n\n1. Rendez-vous sur mafreebox.freebox.fr.\n2. Lors de votre première connexion (ou si vous avez oublié votre mot de passe), cliquez sur « Première connexion » / « Mot de passe oublié ».\n3. Rapprochez-vous de votre Freebox Server : un message de sécurité s’affiche sur l’écran du boîtier. Appuyez sur la flèche de droite pour autoriser le changement du mot de passe.\n4. Sur votre ordinateur, définissez votre nouveau mot de passe, puis identifiez-vous et cliquez sur Connexion.\n\nCette étape sur le boîtier est une sécurité : elle garantit que seule une personne présente chez vous peut modifier l’accès à votre Freebox.\n\nJe reste à votre disposition si vous bloquez à une étape, n’hésitez pas à me dire où vous en êtes.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Contrôle parental Freebox (Profils & pauses planifiées)",
+                expert: false,
+                text: `Le profil (contrôle parental) permet de contrôler l’accès à Internet de différents appareils connectés à votre Freebox, par exemple un smartphone, une tablette ou une console de jeux.\n\nDepuis l’application Freebox Connect (disponible dans l’app Free sur l’App Store et Google Play) :\n1. Créez un profil et associez-y les appareils concernés.\n2. Dans la rubrique Profils, appuyez sur « Détails » du profil, puis « Créer une nouvelle pause ».\n3. Indiquez le nom de la pause, les heures de début et de fin, ainsi que les jours de la semaine concernés, puis validez.\n\nAstuce : pour planifier des pauses pendant les vacances scolaires, sélectionnez votre zone dans le menu « Vacances scolaires » du profil.\n\nVous pouvez également gérer vos profils depuis Freebox OS.\n\nJe reste à votre disposition si vous souhaitez que l’on regarde cela ensemble.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Speedtest (Consigne test nPerf en Ethernet)",
+                expert: false,
+                text: `Afin d’obtenir une mesure fiable du débit arrivant à votre Freebox, je vous invite à effectuer un test de vitesse depuis un ordinateur relié par câble Ethernet directement à la box sur : https://www.nperf.com/fr/\n\nLes tests réalisés en Wi-Fi ne reflètent pas la performance réelle de votre ligne fibre (le signal sans fil étant freiné par la distance, les murs et les interférences). Un test en Ethernet nous permettra d'écarter toute perturbation locale.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Test de débit réel (Fichier .rnd sur Freebox OS)",
+                expert: false,
+                text: `Pour mesurer avec précision la capacité réelle de votre Freebox Server sans dépendre d'un navigateur web :\n1. Connectez un ordinateur récent en câble Ethernet (Catégorie 5e ou 6 minimum) à la Freebox, en coupant les téléchargements des autres appareils du foyer.\n2. Rendez-vous sur http://mafreebox.freebox.fr et ouvrez l'application Téléchargements.\n3. Cliquez sur Nouveau téléchargement > Téléchargement depuis une URL et collez ce lien de test : http://test-debit.free.fr/1048576.rnd\n4. Observez la vitesse de téléchargement affichée (pensez à stopper et supprimer le téléchargement ensuite).\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Débit Freebox Ultra (Cartes Wi-Fi & Reboot 15j)",
+                expert: false,
+                text: `Les débits maximums annoncés sont toujours mesurés en câble Ethernet (le Wi-Fi restant sensible aux murs et aux interférences de votre logement) 😊.\n\nVotre Freebox Ultra dispose de 4 cartes Wi-Fi : une bande 2,4 GHz (longue portée mais débit modéré), deux bandes 5 GHz (très haut débit) et une bande 6 GHz (Wi-Fi 7 pour les appareils très récents).\n* Si vos appareils se connectent uniquement sur le 2,4 GHz, votre débit sera limité : vous pouvez séparer vos cartes Wi-Fi via l'application Freebox Connect.\n* En Ethernet, vérifiez que vos câbles permettent bien le Gigabit (1000 Mbit/s) et non 100 Mbit/s.\n* Enfin, je vous conseille de redémarrer électriquement votre Freebox Server tous les 15 jours afin d'appliquer les mises à jour et rafraîchir la mémoire du routeur.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Port 10 Gbits Freebox Ultra (Module SFP+ RJ45)",
+                expert: false,
+                text: `Sur les ports RJ45 classiques (2,5 Gbit/s) de votre Freebox Ultra, le débit réel plafonne naturellement autour de 2,35 Gbit/s.\n\nSi vous souhaitez atteindre jusqu'à 8 Gbit/s sur un ordinateur compatible, vous devez utiliser le port SFP+ 10G situé à l'arrière du Server en vous équipant :\n1. Du module SFP+ RJ45 (disponible à l'achat dans votre Espace Abonné > Boutique accessoires).\n2. D'un câble Ethernet RJ45 de catégorie 6a minimum.\n3. D'une carte réseau 10 Gbit/s sur votre ordinateur.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Limitation Débit Mini 4K (Wi-Fi 2,4 GHz uniquement)",
+                expert: false,
+                text: `Je tiens à vous préciser que le modèle Freebox Mini 4K ne dispose que d'une seule carte Wi-Fi d'ancienne génération (en 2,4 GHz uniquement). Bien que votre ligne soit parfaitement stable, la technologie sans fil de ce boîtier bride fortement les débits par rapport aux standards actuels.\n\nPour gagner en vitesse, deux solutions s'offrent à vous :\n* Relier vos appareils principaux directement par câble Ethernet.\n* Migrer vers une offre Freebox plus récente (Pop ou Ultra) équipée du Wi-Fi 6 ou Wi-Fi 7 bi/quad-bande, directement depuis votre Espace Abonné > Mon abonnement > Changer mon offre.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Changer le mot de passe Wi-Fi (Application Free & Freebox OS)",
+                expert: false,
+                text: `Pour changer le mot de passe (clé Wi-Fi) de votre Freebox, voici la marche à suivre :\n\nDepuis l’application Free (Espace Abonné Freebox) :\n1. Depuis l’Accueil de votre Espace Abonné Freebox, rendez-vous dans « Mon Wi-Fi ».\n2. Cliquez sur « Modifier », puis accédez à « Clé Wi-Fi ».\n3. Définissez votre nouvelle clé Wi-Fi (8 caractères minimum).\n4. Confirmez en cliquant sur « Valider », puis enregistrez les modifications apportées à votre réseau Wi-Fi.\n\nAstuce : pour une clé robuste et facile à retenir, composez-la de quatre à cinq mots sans lien entre eux (exemple : table-jour-lapin-fleur-sourire).\n\nDepuis Freebox OS (sur un ordinateur connecté à votre Freebox) :\n1. Rendez-vous sur mafreebox.freebox.fr et identifiez-vous.\n2. Ouvrez « Paramètres de la Freebox », puis « Assistant Wi-Fi » (Mode Simplifié).\n3. Saisissez votre nouvelle clé Wi-Fi et validez les modifications.\n\nPensez ensuite à reconnecter vos appareils (téléphones, TV, consoles, imprimantes) avec le nouveau mot de passe : ils seront déconnectés du Wi-Fi tant que la nouvelle clé n’aura pas été saisie.\n\nJe reste à votre disposition si vous souhaitez que l’on fasse la manipulation ensemble.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Retrouver le mot de passe Wi-Fi",
+                expert: false,
+                text: `Pour retrouver votre code Wi-Fi, trois solutions s'offrent à vous :\n1. Depuis votre Espace Abonné : Allez dans Ma Freebox > Gestion Freebox > Voir mes identifiants Wi-Fi (ou via l'application mobile Freebox Connect).\n2. Sur l'écran de votre Freebox : Utilisez les flèches en façade pour naviguer jusqu'au menu Wi-Fi et afficher la clé ou le QR Code.\n3. À distance avec moi : Je peux envoyer une demande d'autorisation sur l'écran de votre Freebox ; il vous suffira de la valider en façade pour que je puisse vous communiquer le mot de passe ici 😊.\n\nBonne journée,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Cartes Wi-Fi désactivées (Réactivation en façade)",
+                expert: false,
+                text: `Il semble que le Wi-Fi soit désactivé sur votre boîtier. Pour le réactiver très simplement :\n1. Placez-vous devant votre Freebox Server (le boîtier principal qui affiche l'heure) et appuyez sur une flèche pour allumer l'écran.\n2. Descendez jusqu'au menu "Wi-Fi" et validez avec la flèche de droite.\n3. Sélectionnez "État" puis "Activer". Votre réseau sans fil va redémarrer en quelques secondes.\n\nBonne journée,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Explication : À quoi servent les cartes Wi-Fi (2,4 GHz vs 5 GHz) ?",
+                expert: false,
+                text: `Pour faire simple, votre Freebox diffuse deux types d'ondes complémentaires :\n* La carte Wi-Fi 5 GHz : Beaucoup plus puissante et rapide, elle est idéale pour les smartphones, ordinateurs, téléviseurs et consoles de jeux situés dans les pièces proches de la box.\n* La carte Wi-Fi 2,4 GHz : Moins rapide mais dotée d'une plus longue portée à travers les murs, elle est parfaite pour les appareils éloignés et les objets connectés du quotidien (imprimantes, aspirateurs robots, volets, alarmes).\n\nBonne journée,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Séparer les cartes Wi-Fi (Application Freebox Connect)",
+                expert: false,
+                text: `Pour séparer vos bandes de fréquences (2,4 GHz et 5 GHz) afin de choisir manuellement sur quel réseau connecter vos appareils :\n1. Ouvrez l'application Freebox Connect sur votre smartphone et appuyez sur Mon Wi-Fi.\n2. En haut à droite, appuyez sur Modifier, puis tout en bas sur Type de configuration Wi-Fi et sélectionnez Séparée.\n3. Cliquez sur l'onglet 5 GHz en haut et renommez ce réseau (ex: Freebox-5G), puis vérifiez que le nom du réseau 2,4 GHz est bien différent.\n4. Cliquez sur Enregistrer les modifications en bas de l'écran.\n\nBelle journée à vous,`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Commander un Répéteur Wi-Fi",
+                expert: false,
+                text: `Pour commander un Répéteur Wi-Fi afin d'étendre votre couverture sans fil :\n1. Connectez-vous sur votre Espace Abonné Freebox (https://moncompte.free.fr).\n2. Allez dans l'onglet Ma Freebox > Commander un Répéteur Wi-Fi.\n3. Prenez connaissance des conditions et laissez-vous guider pour valider l'expédition.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Diagnostic Panne Répéteur Wi-Fi",
+                expert: false,
+                text: `Afin d'identifier l'origine du dysfonctionnement de votre Répéteur Wi-Fi, merci d'effectuer ces vérifications :\n1. Lorsque le répéteur est branché directement sur une prise murale, un voyant s'allume-t-il ? Si oui, de quelle couleur (blanc, orange, rouge) ?\n2. S'il reste totalement éteint sur plusieurs prises murales, testez-le en le branchant avec le câble d'alimentation de votre Freebox Server :\n   * S'il s'allume : C'est uniquement le bloc d'alimentation du répéteur qui est défectueux (nous le remplacerons).\n   * S'il ne s'allume toujours pas : C'est le répéteur lui-même que nous allons échanger.\n\nJ'attends votre retour sur ce test 😊.`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Reset Répéteur Wi-Fi (Voyant rouge clignotant / WPA1)",
+                expert: false,
+                text: `Pour réinitialiser et réassocier votre Répéteur Wi-Fi :\n1. Débranchez électriquement le répéteur.\n2. Maintenez le bouton Reset (situé à l'arrière) enfoncé, rebranchez électriquement le répéteur tout en gardant le bouton appuyé pendant 15 secondes, puis relâchez lorsque le voyant devient orange fixe.\n3. Ouvrez l'application Freebox Connect > Accueil > Mes Équipements > Ajouter un équipement > Répéteur, puis scannez le QR Code situé sous le répéteur.\n\nSi le voyant reste rouge clignotant malgré cette manipulation, revenez vers moi 😉.`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Association des FreePlugs (CPL)",
+                expert: false,
+                text: `Pour réassocier vos deux boîtiers d'alimentation FreePlugs ensemble :\n1. Branchez temporairement les deux FreePlugs côte à côte sur une même multiprise (sans aucun autre appareil branché dessus).\n2. Maintenez appuyé le bouton lumineux de chaque FreePlug pendant 15 secondes jusqu'à ce qu'il passe à l'orange puis au rouge fixe (remise à zéro).\n3. Appuyez ensuite 3 secondes (pas plus) sur le bouton du premier FreePlug, puis 3 secondes sur le second : les voyants vont clignoter vert/orange puis passer tous les deux au vert fixe.\n4. Vous pouvez alors les replacer derrière chacune de vos Freebox, en les branchant impérativement sur une prise murale directe (sans multiprise ni parafoudre).\n\nBelle journée à vous 😊`
+            },
+
+            // =========================================================================
+            // PÔLE 4 : 📺 TÉLÉVISION, PLAYER & SERVICES SVOD
+            // =========================================================================
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "⭐ [Expert] Problème TV (Image figée, erreur réseau, Player Pop)",
+                expert: true,
+                text: `Pour résoudre les saccades ou le message d'erreur sur votre boîtier TV (Freebox Player), voici les manipulations à réaliser dans l'ordre :\n\n1. Redémarrage électrique : Débranchez le câble d'alimentation situé à l'arrière de votre boîtier TV (Player), patientez 15 secondes, puis rebranchez-le.\n2. Vérification de la liaison :\n   * Si votre Player est relié en Wi-Fi : Assurez-vous que le signal est suffisant via l'application Freebox Connect. Si possible, privilégiez une liaison par câble Ethernet (RJ45) direct ou via un Répéteur Wi-Fi.\n   * Si vous utilisez des FreePlugs (CPL) : Vérifiez que le voyant est bien vert sur les deux boîtiers et qu'ils sont branchés directement sur une prise murale (pas sur une multiprise).\n3. Vider le cache de Free TV (sur Player Pop) : Allez dans les Paramètres (roue crantée en haut à droite) > Applications > Voir toutes les applications > Free TV > Vider le cache, puis forcez l'arrêt pour relancer l'application proprement.\n\nTenez-moi informé du résultat après ce redémarrage.\n\nBonne journée,`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "⭐ [Expert] Activation des services de Streaming (Free TV, Netflix, Prime...)",
+                expert: true,
+                text: `Pour activer et profiter des plateformes de divertissement incluses ou en option avec votre offre Freebox :\n\n* Free Ciné (Inclus) : Aucune activation n'est requise ! Rendez-vous directement dans l'application Free TV sur votre boîtier TV (ou smartphone/tablette) et cliquez sur la rubrique Free Ciné dans le menu pour lancer vos films et séries à la demande.\n* Amazon Prime / Netflix / Max : Rendez-vous sur votre Espace Abonné Freebox > rubrique Télévision, sélectionnez le service souhaité et suivez le lien d'activation. (Astuce : si vous possédez déjà un compte existant sur Netflix ou Amazon, utilisez exactement la même adresse e-mail lors de l'activation pour transférer votre profil et basculer la facturation sur votre Freebox sans rien perdre).\n* TV by CANAL / CANAL+ La Chaîne en Live : L'activation se fait directement depuis votre téléviseur en vous rendant sur le canal correspondant (ex: chaîne 4) ou via l'application dédiée sur votre Player, puis en suivant les instructions affichées à l'écran.\n\nFaites-moi signe si vous avez un doute sur l'association d'un compte existant !\n\nBonne journée,`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Branchement électrique mural & Ethernet Player TV",
+                expert: false,
+                text: `Votre signal Fibre étant parfaitement stable, les saccades TV proviennent de la liaison entre vos deux boîtiers. L'utilisation de multiprises ou de rallonges électriques perturbe fortement les boîtiers CPL (FreePlugs).\n\nPouvez-vous brancher électriquement votre Freebox Server et votre Player TV directement sur des prises murales individuelles ? Par ailleurs, si les deux boîtiers sont dans la même pièce, reliez-les directement avec un câble Ethernet RJ45 : cela supprimera définitivement toute perte de signal.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Modifier la qualité du flux vidéo (Pop, Révolution & Chaînes)",
+                expert: false,
+                text: `Pour stabiliser immédiatement l'image de votre télévision et éviter les gels d'écran, je vous invite à abaisser légèrement la consommation vidéo :\n* Sur une chaîne spécifique (ex: chaînes 20 à 23) : Appuyez sur le bouton Vert de votre télécommande > Choix du flux > sélectionnez Bas débit.\n* Sur Player Pop (Global) : Appuyez sur la touche Free > allez sur votre Avatar (Profil) en haut à droite > Télévision > Qualité TV > sélectionnez Intermédiaire ou Standard.\n* Sur Player Révolution (Global) : Appuyez sur la touche Free > rubrique Réglages (à gauche) > Télévision > Qualité vidéo > sélectionnez Standard.\n\nDans l'attente de votre retour,`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Écran Vert ou Rose (Forcer mode couleur RGB 8-bit)",
+                expert: false,
+                text: `Pour corriger ce problème de couleurs (écran vert ou rose) sur votre boîtier TV Android :\n1. Depuis l'accueil du Player, allez dans les Paramètres (roue crantée en haut à droite).\n2. Sélectionnez Préférences relatives à l'appareil > Affichage > Résolution de l'écran > Paramètres de couleurs.\n3. Remplacez le mode de couleur automatique par RGB (max 8-bit).\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Écran noir Canal+ Live / Renégociation HDMI (HDCP)",
+                expert: false,
+                text: `Suite à une mise à jour, une erreur de communication HDMI (HDCP) peut provoquer un écran noir :\n1. Débranchez le câble HDMI, puis débranchez électriquement votre téléviseur ainsi que votre Player TV pendant 5 minutes complètes avant de tout rebrancher.\n2. Si l'écran noir concerne la chaîne Canal+ en Live sur Player Pop/4K, allez dans les Paramètres d'affichage du Player et forcez la résolution en 720p minimum au lieu d'Automatique.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Arrêt du Player Pop au bout de 10 minutes (Option RXSense)",
+                expert: false,
+                text: `Si votre Player Pop se met en veille tout seul au bout de 10 minutes :\n1. Allez dans les Paramètres (roue crantée) > Préférences relatives à l'appareil > À propos, puis cliquez 10 fois de suite sur la ligne "Build" pour activer le mode développeur.\n2. Revenez d'un cran en arrière et ouvrez le nouveau menu "Options pour les développeurs" (vers le bas).\n3. Décochez l'option "Veille Player sur absence de RXSense".\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Vider le cache / Réinitialiser une application TV (Canal+, Free TV...)",
+                expert: false,
+                text: `Pour débloquer une application TV qui plante sur votre Player :\n1. Appuyez sur la touche Maison de votre télécommande Free, puis montez tout en haut à droite sur Paramètres (l'engrenage).\n2. Allez dans Applications > sélectionnez l'application concernée.\n3. Cliquez sur Vider le cache, puis remontez sur Forcer l'arrêt et validez avant de relancer l'application.\n\n(Si le souci persiste, retournez au même endroit et cliquez sur "Effacer les données" ou "Désinstaller les mises à jour").\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Télécommande : Décharge statique & Appairage (Pop, 4K, Révo)",
+                expert: false,
+                text: `Il arrive que de l'électricité statique bloque la télécommande. Retirez les piles, appuyez sur plusieurs boutons pendant 10 secondes dans le vide, puis insérez des piles neuves (non rechargeables).\n\nSi besoin de réassocier la télécommande après avoir redémarré le décodeur TV :\n* Player Révolution : Appuyez sur le petit bouton noir situé à l'arrière du décodeur TV.\n* Player Mini 4K : Appuyez sur le bouton situé en façade avant du décodeur TV.\n* Player Free 4K / Pop : Appuyez sur le bouton situé sur le côté du décodeur (près du port USB) et suivez les instructions à l'écran.\n\nBelle journée à vous,`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Télécommande de secours & TV sur PC/Mobile (tv.free.fr)",
+                expert: false,
+                text: `En attendant le remplacement de votre matériel TV, voici deux astuces de dépannage immédiat :\n* Télécommande sur Smartphone : Ouvrez l'application Freebox Connect > Accueil > cliquez sur votre Player TV > Activer la télécommande.\n* Regarder la TV sans décodeur : Utilisez l'application mobile Free TV (que vous pouvez caster sur votre TV) ou connectez un ordinateur en HDMI à votre téléviseur en allant sur le site https://tv.free.fr.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Destination des enregistrements (Player Révolution) & Multi-TV",
+                expert: false,
+                text: `* Modifier la sauvegarde des enregistrements (Révolution) : Allez dans la colonne de gauche du menu principal > Réglages > Applications > Mes enregistrements > modifiez l'option "Destination des enregistrements par défaut".\n* Commander un boîtier Multi-TV : Connectez-vous à votre Espace Abonné Freebox > rubrique Télévision > Gérer mon option Multi-TV > choisissez le boîtier souhaité.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "4. 📺 Télévision, Player & Services SVOD",
+                title: "Résiliation Options SVOD (Netflix, Canal+)",
+                expert: false,
+                text: `* Pour résilier Netflix : Rendez-vous sur votre Espace Abonné Freebox > Télévision > Netflix > Je résilie mon option Netflix (Assistance directe Netflix : https://help.netflix.com/fr-ca/contactus).\n* Pour résilier un abonnement Canal+ : Rendez-vous sur https://client.canalplus.com/unlogged-cancel-subscription/identify et cliquez directement sur "Vous souhaitez être accompagné ? Être appelé par un conseiller" sans rien remplir au préalable.\n\n(À noter : les résiliations de bouquets TV prennent effet à la fin du mois en cours).\n\nBelle journée à vous 😊`
+            },
+
+            // =========================================================================
+            // PÔLE 5 : 📱 UNIVERS FREE MOBILE (RÉSEAU, SIM, MESSAGERIE & ROAMING)
+            // =========================================================================
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "⭐ [Expert] Activation VoWiFi / VoLTE (Mauvaise couverture intérieure)",
+                expert: true,
+                text: `Si vous captez difficilement le réseau mobile à l'intérieur de votre domicile (murs épais, isolation), je vous conseille d'activer les Appels Wi-Fi (VoWiFi). Cette technologie gratuite permet à votre téléphone d'utiliser le réseau Wi-Fi de votre Freebox pour passer et recevoir vos appels et SMS en haute définition.\n\nComment l'activer sur votre téléphone :\n* Sur iPhone : Allez dans Réglages > Données cellulaires > Appels Wi-Fi et cochez Appels Wi-Fi sur cet iPhone.\n* Sur Android (Samsung, Xiaomi, Pixel...) : Allez dans Paramètres > Connexions (ou Réseau et Internet) > Appels Wi-Fi et activez l'option.\n* Code USSD rapide (Android) : Vous pouvez aussi composer ##869434## sur votre clavier d'appel.\n(Astuce : Redémarrez votre smartphone après l'activation pour forcer l'enregistrement sur le réseau).\n\nDites-moi si l'icône d'appel Wi-Fi apparaît bien en haut de votre écran !\n\nBonne journée,`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "⭐ [Expert] Paramétrage Internet / MMS (APN Free Mobile)",
+                expert: true,
+                text: `Si vous ne parvenez pas à envoyer/recevoir de MMS ou à naviguer sur Internet en 4G/5G, voici comment vérifier la configuration réseau de votre smartphone :\n\n1. Données mobiles : Assurez-vous que l'option Données mobiles est bien activée dans les réglages rapides de votre téléphone (l'envoi de MMS sur les smartphones récents nécessite que la 4G/5G soit allumée, même si vous êtes en Wi-Fi).\n2. Vérification des APN (Points d'accès) : Sur les appareils Android, si la configuration automatique ne s'est pas faite à l'insertion de la carte SIM, vérifiez les paramètres APN dans Paramètres > Réseaux mobiles > Noms des points d'accès :\n   * APN Internet : Nom : Free / APN : free\n   * APN MMS : Nom : Free MMS / APN : mmsfree / MMSC : http://mms.free.fr\n\n🎥 Tutoriel vidéo : https://youtu.be/9_wVAp8xm44\n\nN'oubliez pas de redémarrer votre téléphone une fois les modifications enregistrées.\n\nBonne journée,`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "⭐ [Expert] Configuration eSIM & Vol / Perte de carte SIM",
+                expert: true,
+                text: `Voici la marche à suivre selon votre besoin concernant votre carte SIM Free Mobile :\n\nOption A : Passer sur une eSIM (carte SIM virtuelle)\n1. Depuis votre Espace Abonné Mobile > Mon Compte > Ma carte SIM, cliquez sur Commander une nouvelle SIM et sélectionnez eSIM.\n2. Une fois la commande validée, flashez le QR Code affiché à l'écran avec l'appareil photo de votre téléphone (connecté en Wi-Fi) et saisissez le code de confirmation. (L'activation d'une eSIM désactive automatiquement votre ancienne carte SIM physique).\n\nOption B : En cas de perte ou de vol de votre téléphone\n1. Bloquez immédiatement votre ligne : Connectez-vous à votre Espace Abonné Mobile > Mon Compte > Ma carte SIM > cliquez sur Déclarer ma carte SIM perdue ou volée (vous pouvez demander l'expédition d'une nouvelle SIM physique au même endroit ou la retirer sur une Borne Free : https://www.free.fr/boutiques/).\n2. Obtenez votre numéro IMEI (pour le dépôt de plainte) : Vous le trouverez sur votre facture d'achat ou sur la boîte d'origine du téléphone. Dès que vous nous transmettez le récépissé de dépôt de plainte comportant cet IMEI, nous inscrivons le téléphone sur la liste noire nationale.\n\nJe reste à votre entière disposition pour vous accompagner dans cette démarche.\n\nBonne journée,`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "⭐ [Expert] Blocage des appels indésirables & Préfixes Démarchage",
+                expert: true,
+                text: `Sachez que les plateformes de démarchage téléphonique ont l'obligation d'utiliser des préfixes dédiés : 09 48, 09 49, 01 62, 01 63, 02 70, 02 71, 03 77, 03 78, 04 24, 04 25, 05 68 et 05 69.\n\nPour les bloquer gratuitement depuis vos espaces abonnés :\n1. Sur votre ligne Mobile : Connectez-vous à votre Espace Abonné Mobile > rubrique Mes Services > activez le service Filtre d'appels et SMS/MMS.\n2. Sur votre ligne Fixe (Freebox) : Connectez-vous à votre Espace Abonné Freebox > rubrique Téléphonie > Gestion de mes services téléphoniques (ou tapez *351# sur votre téléphone fixe pour bloquer le dernier appelant).\n\nBonne journée,`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Activation 5G+ (5G SA) & Pas de 5G sur un téléphone compatible",
+                expert: false,
+                text: `Pour profiter de la 5G+ (aussi appelée 5G SA, un réseau 5G complet et indépendant de la 4G), voici les vérifications à effectuer :\n\n1. Vérifiez que votre téléphone est compatible 5G, que l’option est activée dans ses réglages et que sa dernière mise à jour logicielle est installée.\n2. Vérifiez que vous êtes dans une zone couverte par le réseau 5G (3,5 GHz) de Free, grâce à la carte de couverture.\n3. Depuis votre Espace Abonné Mobile, rubrique Mes options, activez gratuitement la 5G+ (ou 5G SA).\n4. Après quelques minutes, activez puis désactivez le mode Avion de votre téléphone, ou redémarrez-le.\n\nSelon votre téléphone :\n* iPhone compatible (à partir de l’iPhone 15) : Réglages > Données cellulaires > Options > Voix et données, sélectionnez 5G Auto puis activez 5G SA et Voix sur 5G Standalone.\n* Samsung et Google Pixel : aucune action supplémentaire, la bascule vers la 5G+ est automatique.\n* Autres modèles Android : activez manuellement la 5G+ depuis les paramètres réseau.\n\nSi votre téléphone est Dual-SIM, assurez-vous d’avoir inséré la carte SIM dans l’emplacement qui prend en charge la 5G (généralement le tiroir SIM 1).\n\nSi vous ne captez toujours pas la 5G après ces étapes, dites-le-moi et nous regarderons cela ensemble.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Qualification Problème Réseau Mobile & Test croisé SIM",
+                expert: false,
+                text: `Merci pour votre message 😊. Afin d'analyser votre problème de réception mobile, j'aurais besoin de ces quelques précisions :\n1. Depuis combien de temps constatez-vous ce dysfonctionnement ?\n2. Le problème se produit-il uniquement à une adresse précise ou partout où vous allez ?\n3. Combien de barres de réseau s'affichent sur votre téléphone ?\n4. D'autres membres de votre foyer sur le réseau Free Mobile ont-ils le même souci ?\n5. Avez-vous pu faire un test croisé (insérer votre carte SIM dans un autre téléphone, et une autre SIM dans le vôtre) pour déterminer si la difficulté vient de la carte SIM ou du téléphone ?\n\nDans l'attente de votre retour,`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Manipulations Réseau : Recherche manuelle & Réinitialisation (iPhone/Android)",
+                expert: false,
+                text: `Aucun incident d'antenne n'étant déclaré sur votre secteur, je vous invite à effectuer ces manipulations de rafraîchissement réseau sur votre téléphone :\n1. Recherche manuelle d'antenne : Allez dans Réglages/Paramètres > Données cellulaires (ou Réseaux mobiles) > Sélection du réseau, décochez Automatique et testez les réseaux Free affichés (même s'il est écrit "Interdit"), puis remettez en Automatique.\n2. Réinitialisation des réglages réseau :\n   * Sur iPhone : Allez dans Réglages > Général > Transférer ou réinitialiser l'iPhone > Réinitialiser > Réinitialiser les réglages réseau.\n   * Sur Android : Allez dans Paramètres > Gestion globale > Réinitialisation > Réinitialiser les paramètres réseau.\n(Note : cela redémarrera le téléphone et remettra à zéro les connexions Wi-Fi/APN enregistrées).\n\nPouvez-vous me tenir au courant du résultat ?`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Explication Couverture Radio & Clause d'usage médical",
+                expert: false,
+                text: `Le signal mobile par ondes radioélectriques reste soumis à divers facteurs physiques : l'épaisseur des bâtiments, le relief, la distance par rapport à l'antenne relais ainsi que l'affluence ponctuelle sur le secteur peuvent atténuer la réception en intérieur.\n\nPar ailleurs, conformément aux manuels des constructeurs, les réseaux cellulaires ne pouvant être garantis sans coupure en toute circonstance, il est recommandé de ne pas reposer exclusivement sur un téléphone portable pour des dispositifs d'urgence médicale.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Activer une Carte SIM, Code PUK & Règles de renouvellement SIM",
+                expert: false,
+                text: `* Pour activer votre carte SIM reçue : Connectez-vous à votre Espace Abonné Mobile > cliquez sur "J'active ma SIM" et saisissez les 5 derniers chiffres inscrits sur le support plastique, puis redémarrez le téléphone (code PIN par défaut : 1234).\n* Retrouver votre Code PUK : Il est consultable à tout moment dans votre Espace Abonné Mobile > Mes informations personnelles > Mon code PUK.\n* Remplacement de SIM usée ou non reçue : Avec le temps, l'oxydation des contacts peut détériorer la puce (le renouvellement d'une SIM déjà utilisée reste à la charge de l'abonné à 10 €). En revanche, s'il s'agit d'un premier envoi postal jamais arrivé, je peux vous en renvoyer une gratuitement sous 5 jours ou faire rembourser les 10 € d'un retrait en Borne Free sur présentation du justificatif 😊.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Activation d'une carte SIM (Pas à pas Espace Abonné)",
+                expert: false,
+                text: `Pour activer votre carte SIM, voici la démarche à suivre :\n\n1. Rendez-vous sur l’Espace Abonné Free Mobile (via le site mobile.free.fr ou l’application mobile).\n2. Renseignez l’identifiant à 8 chiffres figurant sur le courrier accompagnant la carte SIM.\n3. Pour le mot de passe : utilisez celui reçu par e-mail lors de la commande. S’il n’a pas été reçu ou s’il est égaré, cliquez sur « Mot de passe oublié ? » : un lien de réinitialisation sera envoyé sur l’adresse e-mail de contact rattachée à la ligne.\n4. Une fois connecté(e), cliquez sur le bandeau d’activation ou allez dans la rubrique Mon compte > Activer ma carte SIM.\n5. Saisissez le numéro à 19 chiffres situé au dos du support de la carte SIM (sous le code-barres) puis validez.\n\nL’activation de la ligne est quasi immédiate (quelques minutes suffisent). Il ne restera plus qu’à insérer la carte SIM dans le téléphone et à saisir le code PIN par défaut (1234 ou 0000).\n\nJe reste à votre disposition en cas de besoin.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Portabilité en cours & Récupération ID Mobile (555)",
+                expert: false,
+                text: `* Portabilité : Je vous rassure, la portabilité de votre numéro est en cours et prendra effet le [Date] après [Heure] 😊. Continuez d'utiliser la SIM de votre ancien opérateur jusque-là, puis activez votre SIM Free dans votre Espace Abonné.\n* Identifiant oublié : Si vous avez égaré votre identifiant Free Mobile à 8 chiffres, appelez gratuitement le 555 depuis votre ligne Free pour le recevoir immédiatement par SMS.\n\nBelle journée à vous,`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Paramétrage Centre SMS (+33695000900) & Numéro temporaire RCS",
+                expert: false,
+                text: `Voici les manipulations pour rétablir vos SMS :\n* Serveur SMS (SMSC) : Si vos SMS classiques ne partent plus, vérifiez dans les paramètres avancés de votre application Messages que le numéro du centre serveur SMS est bien le +33 695 000 900.\n* Numéro temporaire qui reste affiché après portabilité (Android) : Ouvrez l'application Messages > cliquez sur votre profil en haut à droite > Paramètres > Chats RCS > désactivez puis réactivez le service. Si cela persiste, supprimez le numéro temporaire dans les paramètres de votre compte Google, réinitialisez l'application Messages et ressaisissez votre numéro définitif.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Réactiver la Messagerie Vocale & Renvois d'appels (Codes USSD)",
+                expert: false,
+                text: `Pour reconfigurer proprement votre messagerie vocale :\n1. Tapez ##002# sur votre clavier d'appel et lancez l'appel (cela annule tous les renvois parasites).\n2. Tapez ensuite **61*0695600012# (ou **61*0653600011**30#) et lancez l'appel pour réactiver le renvoi vers la messagerie Free en cas de non-réponse.\n3. Sur iPhone (si la Messagerie Vocale Visuelle ne s'affiche pas) : Allez dans Réglages > Téléphone > Code secret de messagerie, définissez un code et redémarrez l'iPhone.\n4. Sur Android : Vérifiez dans Paramètres d'appels > Messagerie vocale que le numéro est bien +33695600011, et assurez-vous sur votre Espace Abonné que les options "Relais téléphonique" et "Forfait bloqué" sont désactivées.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Voyage à l'étranger (Roaming 35 Go, Option Forfait Bloqué & Bateau/Avion)",
+                expert: false,
+                text: `Depuis votre destination ([Pays]), votre Forfait Free 5G+ inclut 35 Go/mois d'Internet mobile (détails des tarifs par pays sur : https://mobile.free.fr/communications-a-l-etranger).\n* Si votre destination inclut la voix : Vos appels, SMS et MMS sont illimités vers la France et localement.\n* Si votre destination n'inclut que la data (35 Go) : Les appels et SMS classiques étant hors-forfait, privilégiez les applications de messagerie (WhatsApp, Messenger, FaceTime...).\n\n⚠️ Vérifications indispensables :\n1. Avant le départ : Vérifiez dans votre Espace Abonné Mobile que l'option "Forfait Bloqué" est bien DÉSACTIVÉE (sinon l'itinérance à l'étranger est bloquée).\n2. Sur place : Activez les "Données en itinérance" dans les réglages du téléphone (et redémarrez l'appareil).\n3. En avion ou en bateau : Coupez vos données mobiles ou restez en mode avion pour ne pas borner sur les réseaux satellites/maritimes facturés hors-forfait.\n\nBon voyage ! 😊`
+            },
+
+            // =========================================================================
+            // PÔLE 6 : 🚀 VIE DU CONTRAT, DÉPLOIEMENT FIBRE & VENTES (UP-SELL)
+            // =========================================================================
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "⭐ [Expert] Déménagement de l'abonnement Freebox",
+                expert: true,
+                text: `Pour organiser le déménagement de votre ligne Freebox en toute sérénité et éviter toute coupure de service :\n\n1. Déclaration : Rendez-vous dans votre Espace Abonné Freebox > rubrique Mon Abonnement > Déménager mon abonnement (démarche conseillée 15 jours à 1 mois avant votre emménagement).\n2. Informations utiles : Munissez-vous de votre nouvelle adresse exacte et, si le logement est déjà équipé d'un boîtier fibre (PTO), du numéro de PTO inscrit dessus (format type FI-XXXX-XXXX). Cela permet d'accélérer considérablement l'activation !\n3. Nouvel espace abonné : Un nouvel identifiant fbx... sera généré par e-mail pour votre nouveau logement.\n4. Matériel : Conservez précieusement l'intégralité de vos équipements (Freebox Server, Player, câbles, alimentations). Ce sont ces mêmes boîtiers que vous brancherez dans votre nouveau logement 📦.\n\nSi vous avez un doute sur l'éligibilité Fibre de votre futur logement, vous pouvez me transmettre la nouvelle adresse et le numéro de PTO par retour de message, je ferai la vérification pour vous.\n\nBonne journée,`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "⭐ [Expert] Rattachement Forfait Mobile & Avantage Freebox (Free Family)",
+                expert: true,
+                text: `En tant qu'abonné Freebox, vous pouvez bénéficier de tarifs préférentiels sur vos forfaits Free Mobile (jusqu'à 4 forfaits mobiles rattachés avec l'avantage Free Family, et la 5G/4G illimitée sur le Forfait Free 5G+).\n\n* Pour associer votre forfait mobile à votre Freebox : Connectez-vous à votre Espace Abonné Mobile (https://mobile.free.fr/account/) > Mon Compte > Mon avantage Freebox > saisissez vos identifiants Freebox (fbx...).\n* Pour rattacher une ligne secondaire existante : Dans l'Espace Abonné de la ligne principale > Gérer mes lignes > Mes autres lignes > saisissez les identifiants de la ligne secondaire et validez le code SMS.\n* Pour détacher ou changer de ligne principale : Vous devez d'abord dissocier la Freebox puis détacher les lignes. Attention : un délai de carence de 30 jours s'applique avant de pouvoir rattacher à nouveau les lignes à la Freebox.\n\nBonne journée,`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Tarif forfait mobile après passage sur Freebox Pop (Avantage Pop & ligne supplémentaire)",
+                expert: false,
+                text: `Je comprends votre interrogation concernant le tarif de votre forfait mobile suite à votre passage sur une offre Freebox Pop.\n\nLe tarif de votre forfait mobile dépend de votre formule Freebox et de son origine (nouvel abonnement ou migration depuis un ancien abonnement, comme l’offre Pop Fidélité). Voici ce qu’il faut retenir :\n\n* Si votre ligne mobile principale est déjà rattachée à votre offre, elle bénéficie de la réduction permanente de votre formule, par exemple le Forfait Free 5G+ à 15,99 € / mois (au lieu de 19,99 € / mois) avec data illimitée. Le tarif de 9,99 € / mois ne peut pas être appliqué sur une ligne mobile existante.\n* Si vous souscrivez une nouvelle ligne mobile supplémentaire (pour un proche par exemple), celle-ci peut profiter de l’avantage Pop à 9,99 € / mois pendant un an, puis 15,99 € / mois par la suite.\n\nVous pouvez retrouver l’ensemble des conditions et détails tarifaires sur nos pages officielles :\n\n* Fiches d’information et tarifs Freebox :\nhttps://adsl.free.fr/cgv/fiches-informations-standardisees.html\n* Fiches d’information et tarifs Mobile :\nhttps://mobile.free.fr/fiches-informations-standardisees.html\n\nJe reste à votre disposition si vous souhaitez faire le point sur vos lignes ou ajouter un forfait secondaire.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Changement de forfait mobile (Forfait 2€ / Free 5G+ / Free Max)",
+                expert: false,
+                text: `Vous pouvez changer de forfait en autonomie depuis votre Espace Abonné Mobile ou l’app Free : Mon compte > Mon offre > Changer de forfait, puis validez en cliquant sur Continuer.\n\nRappel des tarifs mensuels :\n* Forfait 2€ : 2 €/mois.\n* Forfait Free 5G+ : 19,99 €/mois (15,99 €/mois ou 9,99 €/mois selon la formule Freebox à laquelle il est rattaché).\n* Forfait Free Max : 29,99 €/mois (19,99 €/mois s’il est rattaché à une Freebox).\n\n* Du Forfait 2€ vers le Forfait Free 5G+ (ou Free Max) : le changement est effectif sous 24h et modifie votre date de facturation (par exemple, un passage le 20 prend effet le 21, qui devient votre nouvelle date de facturation). La première facture comprend les jours utilisés sur l’ancien forfait ainsi que le mois d’avance du nouveau. Si du hors forfait a été réalisé avant la remise à zéro, une dernière facture du Forfait 2€ est émise à l’ancienne date anniversaire. Pensez à redémarrer votre téléphone ensuite pour profiter de tous les services compatibles.\n* Du Forfait Free 5G+ ou Free Max vers le Forfait 2€ : possible après trois mois complets et réglés. L’opération est facturée 10€ sur la facture du mois en cours et a lieu à la date de facturation.\n* Du Forfait Free Max vers le Forfait Free 5G+ : opération facturée 10€, à la date de facturation.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Modification du nom ou du titulaire d’un abonnement mobile (Pièces à fournir)",
+                expert: false,
+                text: `Pour modifier le nom, le titulaire ou l’état civil d’un abonnement Free Mobile, une demande accompagnée de justificatifs est nécessaire selon votre situation :\n\n* Changement de nom (mariage/divorce, pacs/dépacs) : lettre explicative mentionnant les identifiants de l’abonnement, accompagnée du justificatif d’état civil correspondant.\n* Changement de titulaire suite à un décès : acte de décès ou certificat d’hérédité (ou acte notarié), RIB au nom du nouveau titulaire et copie de sa pièce d’identité.\n* Société ou association : lettre explicative avec les identifiants de l’abonnement et extrait Kbis (société), copie JORF ou attestation préfectorale (association), ou extrait d’immatriculation au répertoire des métiers (artisan).\n\nAvant l’envoi des documents, pensez à mettre à jour vos coordonnées bancaires, votre adresse postale, votre e-mail et votre numéro de mobile de contact depuis votre Espace Abonné Mobile.\n\nÀ noter : si le compte principal est rattaché à un abonnement Freebox, la mise à jour du nom ne s’applique qu’à l’abonnement mobile.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Éligibilité Fibre, Passage à la Fibre & Fermeture du réseau Cuivre",
+                expert: false,
+                text: `* Si votre adresse n'est pas encore éligible : L'opérateur d'infrastructure de votre commune finalise actuellement les travaux de déploiement (fin prévisionnelle estimée au [Date]). Dès l'ouverture commerciale, nous vous contacterons automatiquement. Carte de suivi : https://www.free.fr/freebox/carte-fibre-optique/\n* Récapitulatif du passage à la Fibre (et fermeture de l'ADSL/Cuivre) :\n  📅 Installation : Un technicien installe gratuitement le boîtier optique (PTO) sur un créneau de 2 heures.\n  💲 Coût : L'installation est 100 % gratuite et votre tarif d'abonnement reste strictement identique.\n  📦 Matériel : Si vous avez une Freebox Révolution ou Pop, vous la conservez. Si vous possédez une ancienne Freebox Crystal (incompatible Fibre et non maintenue), nous vous la remplaçons gratuitement !\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Géolocalisation Fibre & Blocages Raccordement (Fourreaux / PM-PBO / Garage)",
+                expert: false,
+                text: `Voici le point concernant votre raccordement Fibre :\n* Formulaire de géolocalisation : Merci de remplir depuis votre domicile le formulaire reçu par SMS/e-mail afin de confirmer votre position géographique exacte.\n* Fourreaux bouchés (Domaine privé) : Le technicien n'a pas pu passer la fibre car la gaine intérieure de votre propriété est obstruée. Free ne réalisant pas de travaux en domaine privé, il vous revient de déboucher ce fourreau avant de replanifier un rendez-vous.\n* Absence de continuité optique extérieure (PM -> PBO/PTO) : Le blocage se situe sur le réseau public dans la rue. Votre installation intérieure est conforme : nous avons escaladé le dossier auprès de Free Réseau et de l'opérateur d'infrastructure (ex: XP Fibre) pour réparer la ligne extérieure.\n* Emplacement du boîtier PTO (ex: Garage) : Le PTO est posé dans le prolongement de la gaine d'arrivée. Si la box est éloignée dans le garage, nous vous conseillons de commander un Répéteur Wi-Fi gratuit sur votre Espace Abonné (le déplacement d'une prise PTO impliquant de longs délais).\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Victime d'un Écrasement de ligne (Perte d'accès causée par un tiers)",
+                expert: false,
+                text: `Un autre opérateur a par erreur forcé la mise en place d'une autre ligne sur votre fibre optique lors du raccordement d'un voisin, entraînant l'interruption de vos services. Rassurez-vous, nous lançons dès aujourd'hui la procédure de relivraison et de sécurisation de votre ligne.\n\n* Délai : La résolution prend en moyenne entre 6 et 15 jours ouvrés (suivi disponible sur https://moncompte.free.fr > Mon abonnement > Suivi de ma commande).\n* Résolution à distance : Si les techniciens parviennent à rétablir directement votre route optique à l'armoire de rue, le rendez-vous à domicile sera automatiquement annulé.\n* En attendant : N'hésitez pas à utiliser le partage de connexion de votre forfait mobile et la TNT.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Présentation des Offres Freebox (Ultra, Essentiel, Pop, Pop S) & Migrations",
+                expert: false,
+                text: `Voici le détail de nos offres Freebox actuelles (disponibles dans Espace Abonné > Mon abonnement > Changer mon offre) :\n* Freebox Ultra : Fibre jusqu'à 8 Gbit/s symétriques, Wi-Fi 7 Quad-band, Player TV 4K (+ de 340 chaînes), CANAL+ La Chaîne en Live, TV by Canal, Netflix, Disney+ et Amazon Prime inclus.\n* Freebox Ultra Essentiel : Toute la puissance de la Freebox Ultra (8 Gbit/s, Wi-Fi 7 et Free TV), sans les plateformes de streaming tierces incluses, à un tarif plus avantageux.\n* Freebox Pop : Fibre jusqu'à 5 Gbit/s partagés, Wi-Fi 6/7, Player TV Pop Android 4K (+ de 220 chaînes) et 1er Forfait Free 5G+ à 9,99 €/mois.\n* Freebox Pop S : Offre 100 % Internet (Fibre 5 Gbit/s et Wi-Fi 7), sans boîtier TV.\n\n(À noter : il n'est pas possible de migrer vers une offre inférieure ni de la Pop vers la Pop S sans résilier, et le tarif promotionnel 1ère année est réservé aux nouvelles souscriptions).\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Migration vers une nouvelle offre Freebox (Ancienne offre non disponible)",
+                expert: false,
+                text: `Après vérification de votre dossier, l’offre Freebox demandée (par exemple la Freebox Révolution) n’est malheureusement plus proposée en migration pour votre abonnement.\n\nL’offre actuellement disponible pour faire évoluer votre équipement est la Freebox Ultra Essentiel.\n\nVous pouvez retrouver le détail de cette formule et valider votre demande de changement directement depuis votre Espace Abonné Freebox (rubrique Mon abonnement > Changer d’offre). Une fois la validation effectuée, un e-mail vous précisera le suivi de livraison de votre nouveau matériel ainsi que les modalités pour restituer l’ancien équipement en point relais.\n\nJe reste à votre disposition si vous avez la moindre question concernant les caractéristiques de l’offre.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Proposition commerciale Mobile : Offre fidélité (Phrase à ajouter, version complète)",
+                expert: false,
+                text: `Pour vous remercier de votre fidélité, une belle offre mobile vous attend 🎁 Avec votre Freebox, profitez d’un forfait en tout illimité à partir de 9,99 €/mois la première année, puis 15,99 €/mois. Si cela vous intéresse, répondez simplement à ce message et je m’occupe de tout 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Proposition commerciale Mobile : Offre fidélité (Phrase à ajouter, version courte)",
+                expert: false,
+                text: `Petit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de 9,99 €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Confirmations Ventes Mobile (Free 5G+, Forfait 2€, Booster 1 Go)",
+                expert: false,
+                text: `Suite à notre échange téléphonique, je vous confirme la validation de votre offre mobile sans engagement :\n* Forfait Free 5G+ : Appels/SMS/MMS illimités en France métropolitaine, Internet 4G/5G illimité et 35 Go/mois à l'étranger (proposé à 9,99 €/mois pendant 1 an puis 15,99 €/mois avec l'avantage Freebox Pop).\n* Forfait 2 € + Booster 1 Go (à 0 €/mois) : Vous bénéficiez désormais des appels illimités (au lieu de 2h) et d'une enveloppe de 1 Go d'Internet en 4G/5G (0,05 €/Mo au-delà) sans surcoût sur votre abonnement ! (Si vous n'avez pas le Booster et seulement 50 Mo, pensez à désactiver vos données mobiles pour éviter tout hors-forfait).\n\nEn cas de migration de forfait, le changement est effectif sous 24h : il vous suffira d'éteindre et rallumer votre téléphone dès demain.\n\nMerci de votre confiance !`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Vigilance Phishing : Faux e-mails, SMS ou appels Free (Adresses officielles)",
+                expert: false,
+                text: `Merci pour votre vigilance. Des tentatives de phishing (hameçonnage) se font régulièrement passer pour Free par e-mail, SMS ou appel téléphonique. Voici les bons réflexes :\n\n* Free ne vous demande jamais vos identifiants, mots de passe ou coordonnées bancaires par e-mail, SMS ou téléphone. Vos coordonnées bancaires n’apparaissent jamais en clair dans nos messages.\n* Les e-mails Free Mobile sont envoyés depuis freemobile@free-mobile.fr.\n* Les e-mails Freebox sont envoyés depuis info@freetelecom.fr, info-free@freetelecom.fr ou info-abonne@freetelecom.fr.\n* Les e-mails de l’assistance sont envoyés depuis freeproxi@freetelecom.fr, messagerie@freetelecom.fr, enquete@assistance.free.fr ou noreply@assistance.free.fr.\n* Les liens présents dans les SMS Free Mobile commencent par m.free.fr.\n\nEn cas de doute, ne cliquez sur aucun lien : connectez-vous directement à votre Espace Abonné (https://mobile.free.fr/account ou https://subscribe.free.fr/login/). Pour les abonnés mobile, les derniers e-mails et SMS reçus de notre part sont consultables dans la rubrique Nos communications > Communications de Free.\n\nSi vous avez été visé par une tentative de phishing, vous pouvez la signaler sur signal-spam.fr et cybermalveillance.gouv.fr.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Espace Abonné Freebox : Créer ou réinitialiser son mot de passe (Pas à pas)",
+                expert: false,
+                text: `Pas de souci, voici comment créer ou réinitialiser votre mot de passe pour accéder à votre Espace Abonné Freebox :\n\n1. Rendez-vous sur la page de connexion de l’Espace Abonné Freebox (https://subscribe.free.fr/login/) ou dans l’app Free.\n2. Cliquez sur « Mot de passe oublié ? ».\n3. Renseignez votre identifiant et le code postal lié à votre abonnement, puis cliquez sur Envoyer.\n4. Un lien de réinitialisation est envoyé à votre e-mail de contact, il reste valable 30 minutes. Pensez à vérifier vos spams.\n5. Cliquez sur « Je crée mon mot de passe » et définissez-en un nouveau : entre 10 et 32 caractères, avec au moins une majuscule, une minuscule et un chiffre.\n\nSi vous n’avez plus accès à votre e-mail de contact, vous pouvez vous rendre dans une boutique Free muni d’une pièce d’identité, ou revenir vers moi.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Réinitialisation du mot de passe déclenchée (Espace Abonné Mobile)",
+                expert: false,
+                text: `Je viens de déclencher directement l’envoi de l’e-mail de réinitialisation de mot de passe vers votre adresse de contact.\n\nIl vous suffit de consulter votre boîte de réception et de cliquer sur le lien sécurisé reçu pour définir votre nouveau mot de passe (pensez à vérifier vos courriers indésirables / spams si vous ne le voyez pas apparaître d’ici quelques instants).\n\nUne fois votre mot de passe mis à jour, vous pourrez accéder à votre Espace Abonné Mobile en toute simplicité.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Réinitialisation du mot de passe déclenchée (Espace Abonné Freebox)",
+                expert: false,
+                text: `Je viens de déclencher l’envoi de l’e-mail de réinitialisation de votre mot de passe vers votre adresse de contact.\n\nIl vous suffit de consulter votre boîte de réception et de suivre le lien sécurisé reçu pour définir votre nouveau mot de passe (pensez à vérifier vos courriers indésirables / spams si le message n’apparaît pas d’ici quelques instants).\n\nSi vous avez besoin de relancer la démarche, vous pouvez utiliser cet accès officiel :\n\n* Page de réinitialisation directe : https://subscribe.free.fr/login/send_pass.pl\n\nJe reste à votre entière disposition si vous rencontrez le moindre blocage lors de la saisie.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Accès Espace Abonné oublié & Déblocage Webmail Free (Zimbra / Abuse)",
+                expert: false,
+                text: `Voici les procédures pour récupérer vos accès :\n1. Espace Abonné Mobile : Identifiant oublié (https://mobile.free.fr/account/forget-login) / Mot de passe oublié (https://mobile.free.fr/account/forget-password) / E-mail de contact erroné (https://mobile.free.fr/account/email-errone).\n2. Espace Abonné Freebox : https://subscribe.free.fr/login/send_pass.pl (évitez les noms propres, villes ou suites simples dans le nouveau mot de passe).\n3. Boîte Webmail Free (@free.fr) bloquée ou compromise : L'assistance Freebox n'a pas accès à la gestion des boîtes mail (qui n'ont aucun lien avec Microsoft). Pour débloquer votre adresse :\n   * Depuis votre Espace Abonné Freebox : Mon abonnement > Gérer mes comptes e-mail Free > Compte bloqué > Débloquer (actif sous 2h).\n   * Via le formulaire : https://subscribe.free.fr/mail/recupcompte.pl\n   * En cas de piratage : Consultez https://postmaster.free.fr/comptescompromis.html ou écrivez à abuse@proxad.net (objet : "Compte Compromis").\n\nBelle journée à vous,`
+            },
+
+            // =========================================================================
+            // PÔLE 7 : 💳 FACTURATION, LITIGES, RETOURS MATÉRIEL & RÉSILIATION
+            // =========================================================================
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Comprendre une facture ou montant inhabituel (1ère facture / VOD)",
+                expert: true,
+                text: `Suite à votre message concernant le montant de votre facture, voici les explications sur les éléments les plus fréquents :\n\n* S'il s'agit de votre première facture : L'installation physique de la Fibre par le technicien est bien 100 % gratuite. La première facture inclut en revanche les frais administratifs de mise en service (49 €, couvrant l'ouverture de ligne et la préparation/expédition de la box), le prorata du premier mois d'activation ainsi que le mois suivant facturé d'avance.\n* Ligne "TV by Canal" : Ce bouquet est inclus sans surcoût dans votre offre. La ligne apparaît uniquement à titre informatif avec une remise équivalente pour afficher la valeur réelle de votre abonnement.\n* Factures en cours & VOD (ex: beIN Sports) : Les options TV/VOD sont facturées à terme échu par mois complet (sans prorata temporis, même en cas de résiliation immédiate). Téléchargez la facture détaillée en PDF depuis votre Espace Abonné > rubrique Factures pour vérifier le détail.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Télécharger ses factures & demander un duplicata papier",
+                expert: false,
+                text: `Vos factures sont accessibles à tout moment et téléchargeables gratuitement depuis votre Espace Abonné Freebox :\n\n1. Rendez-vous dans la rubrique Mon abonnement, puis Mes factures.\n2. Sélectionnez la facture souhaitée pour la consulter ou l’enregistrer au format PDF.\n\nSi vous avez besoin d’un exemplaire papier par voie postale, cliquez sur « Recevoir un duplicata de facture » depuis cette même rubrique. L’envoi postal d’un duplicata est facturé : le montant exact est indiqué sur la page avant validation.\n\nJe reste à votre disposition en cas de besoin.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Frais de pénalité sur facture (Retard de paiement)",
+                expert: false,
+                text: `Suite à votre demande, nous vous confirmons que les frais de pénalité constatés sur votre facture correspondent à un retard de paiement.\n\nConformément à nos conditions générales d’abonnement :\n\nPour les abonnés au Forfait 2€, une pénalité d’un euro par jour de retard est appliquée, dans la limite de 7,50€ par facture.\n\nPour les abonnés au Forfait Free 5G+, une pénalité forfaitaire de 10€ est appliquée par facture en cas de retard de règlement.\n\nCes frais sont automatiquement calculés et ajoutés lors de l’émission de la facture suivante si un paiement n’a pas été effectué dans les délais impartis.\n\nNous restons disponibles pour toute autre information ou assistance complémentaire.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Régularisation d'impayé, Changement de RIB & Délai rétablissement",
+                expert: true,
+                text: `Pour mettre à jour vos coordonnées bancaires ou régulariser un paiement en attente :\n\n1. Régulariser un impayé : Rendez-vous dans votre Espace Abonné (rubrique Factures) pour régler le montant par carte bancaire. Suite à la régularisation, le rétablissement complet des services TV peut prendre jusqu'à 24h (pensez à redémarrer vos deux boîtiers) et jusqu'à 48h pour le déblocage d'un mobile Free Flex.\n2. Modifier votre RIB / IBAN : Allez dans votre Espace Abonné > Mon Abonnement > Modifier mes informations bancaires (à noter : les prélèvements ayant lieu à date fixe en début de mois, il n'est pas possible de demander un décalage individuel de date de prélèvement).\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] ODR Frais de résiliation ancien FAI (100€) & Frais mise en service",
+                expert: true,
+                text: `Voici les modalités concernant vos demandes de remboursement :\n\n1. Frais de résiliation de votre ancien opérateur (ODR jusqu'à 100 €) :\n   * Si vous m'avez transmis votre facture de clôture ici : Je viens de la transférer directement à notre service dédié pour déclencher votre remboursement 😊.\n   * Par voie postale : Envoyez la facture de clôture de l'ancien opérateur accompagnée de votre e-mail de confirmation de souscription Freebox à l'adresse indiquée sur le coupon dans les 4 mois.\n2. Frais de mise en service Freebox :\n   * Si votre offre promotionnelle de souscription inclut leur remboursement (vérifiable au bas de votre e-mail "Confirmation de votre commande Freebox"), demandez-le directement dans votre Espace Abonné Freebox > Mon abonnement > Remboursement des frais de mise en service.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Remboursement des frais de mise en service (Espace abonné)",
+                expert: false,
+                text: `Vous avez la possibilité de faire la demande de remboursement des frais directement depuis votre espace abonné 😊\n\nPour cela, rendez-vous sur l'espace abonné Freebox : https://subscribe.free.fr/login/\n\n> Rubrique Mon abonnement\n> Remboursement des frais de mise en service\n> Je demande mon remboursement\n\nUn message confirme alors que la demande a été effectuée, en précisant la date et l’heure de l’action.\n\nUne fois le remboursement saisi, la section « Remboursement des frais de mise en service » disparaît de l’Espace Abonné.\n\nEn vous souhaitant une belle journée ☀️`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Échange de matériel (SWAP) : Consignes QR Code, SFP & Disque Dur",
+                expert: true,
+                text: `Votre échange de matériel est validé ! Le colis sera livré sous 24h à 72h via Chronopost au point relais [Nom et Adresse du Point Relais].\n\nAfin que l'échange se déroule sans encombre dès réception du SMS de disponibilité :\n1. ⚠️ TRÈS IMPORTANT avant d'emballer votre ancienne box :\n   * Retirez impérativement le module Fibre amovible (SFP) inséré à l'arrière du Server.\n   * Retirez vos éventuels disques durs personnels situés dans la trappe sous la box.\n2. Préparation : Mettez uniquement l'équipement concerné par l'échange et son bloc d'alimentation dans un carton fermé (ne rendez pas la télécommande ni d'autres accessoires non demandés ; en cas d'oubli dans le colis, retournez vite au point relais avant la relève du transporteur).\n3. En point relais : Aucune impression n'est requise ! Présentez simplement votre pièce d'identité et le QR Code reçu au commerçant relais.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Demande de résiliation Freebox (Procédure, adresses & matériel)",
+                expert: true,
+                text: `Sur l'assistance technique, nous n'avons pas accès à la résiliation administrative des contrats. Voici la marche à suivre :\n\n* Si vous partez chez un autre opérateur (Portabilité) : Ne résiliez pas vous-même ! Communiquez simplement votre code RIO fixe (obtenu au 3179) à votre nouvel opérateur.\n* Si vous souhaitez une résiliation sèche :\n  1. Contactez notre service dédié au 3244 ou au 01 78 56 95 52 (lun-ven 9h-20h, sam 9h-15h), utilisez le lien direct https://subscribe.free.fr/login/?link=resilonline ou envoyez un courrier recommandé (LRAR) à : PUBLIDISPATCH / FREE RSL – BP 40090 – 91003 Évry Cedex.\n  2. Vous disposerez ensuite de 15 jours pour retourner l'intégralité des équipements (Server, Player, FreePlugs, télécommande, câbles) en point relais grâce au bon de retour généré sur votre Espace Abonné.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Résiliation Free Mobile & Obtention du RIO",
+                expert: true,
+                text: `Pour mettre fin à votre forfait Free Mobile :\n\n* Si vous conservez votre numéro (Portabilité) : Ne résiliez pas vous-même votre ligne ! Appelez gratuitement le 3179 depuis votre mobile pour obtenir votre code RIO par SMS et transmettez-le à votre nouvel opérateur.\n* Si vous ne souhaitez pas garder votre numéro : Résiliez directement en ligne sur https://mobile.free.fr/account/resilier-mon-compte, appelez notre service dédié au 01 78 56 10 13 (lun-ven 9h-20h, sam 9h-15h) ou envoyez un courrier recommandé (LRAR) à : Free Mobile – Résiliation – 75371 Paris Cedex 08.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Relance avant facturation (Rappel restitution matériel)",
+                expert: true,
+                text: `Vous avez reçu un e-mail ou un SMS vous alertant de la non-réception de vos équipements Freebox suite à la résiliation de votre ligne.\n\nAfin d'éviter la facturation automatique des pénalités forfaitaires de non-restitution :\n1. Si le matériel n'est pas encore envoyé : Emballez soigneusement l'ensemble des équipements (Server, Player, blocs d'alimentation/FreePlugs, télécommande, câbles) dans un carton fermé avec l'étiquette de retour prépayée disponible sur votre Espace Abonné résilié.\n2. Dépôt en point relais : Déposez le colis et conservez précieusement le reçu tamponné attestant du dépôt et mentionnant le poids du colis.\n\nSi vous avez déjà déposé votre colis, répondez simplement à ce message en me communiquant le numéro de suivi pour que j'actualise votre dossier.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Contestation frais non-restitution (Colis envoyé / Preuve)",
+                expert: true,
+                text: `J'ai bien pris connaissance de votre contestation concernant la facturation des pénalités de non-restitution de votre matériel. Si vous avez déjà expédié votre colis, nous pouvons faire suspendre ou annuler ces frais dès réception de votre justificatif d'envoi.\n\nMerci de me transmettre en réponse à ce message :\n1. Une photo ou un scan bien lisible de votre preuve de dépôt (tamponnée par le commerçant relais ou le transporteur).\n2. Le numéro de suivi postal/transporteur ainsi que la date exacte de dépôt.\n\nDès transmission de ces éléments, je pourrai tracer l'acheminement auprès de notre plateforme logistique et déclencher la régularisation comptable.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Restitution incomplète (Accessoire manquant : FreePlug, Telco...)",
+                expert: true,
+                text: `Notre centre logistique a bien réceptionné votre colis retour, mais un ou plusieurs éléments obligatoires manquent à l'inventaire (ex. : bloc d'alimentation/FreePlug, télécommande ou câble optique).\n\nPour éviter la facturation de l'indemnité forfaitaire correspondant à cet accessoire :\n1. Vérifiez chez vous si l'élément manquant n'est pas resté branché sur une prise murale.\n2. Renvoyez l'accessoire manquant par voie postale (en précisant impérativement votre identifiant Freebox résilié et vos coordonnées complètes à l'intérieur du colis) à l'adresse suivante :\n   Freebox Retour – C/O Orium\n   11 Rue de Lisbonne\n   93110 Rosny-sous-Bois\n3. Conservez bien le récépissé d'envoi postal avec suivi et transmettez-moi le numéro de suivi dès qu'il est posté.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "⭐ [Expert] Réclamation formelle, Recouvrement & Assurance AXA (Adresses)",
+                expert: true,
+                text: `Sur l'assistance technique, nous n'avons pas accès aux gestes commerciaux financiers ni aux dossiers de recouvrement. Pour formuler une réclamation écrite officielle (accompagnée de vos justificatifs et identifiants fbx...), voici les adresses postales dédiées :\n\n* Service Réclamation / Relation Consommateur :\n  Free – Service Réclamations – 75371 Paris Cedex 08\n* Service Recouvrement :\n  Free – Service Recouvrement – 75371 Paris Cedex 08\n* Assurance Mobile Free (AXA - Réclamation 2nd niveau) :\n  AXA – Direction des Partenariats IARD – Service Réclamations – 313 Terrasses de l'Arche – 92727 Nanterre Cedex\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Fin d'offre découverte (1 an) & Politique de prix fixe sans négociation",
+                expert: false,
+                text: `Lors de votre souscription, vous avez bénéficié d'un tarif promotionnel "Offre Découverte" valable durant vos 12 premiers mois d'abonnement 😊. Cette première année étant écoulée, votre abonnement passe automatiquement à son tarif normal fixe, comme indiqué lors de votre inscription.\n\nChez Free, nous ne pratiquons pas la négociation au cas par cas afin de garantir à tous nos abonnés les tarifs les plus bas possibles, sans engagement, avec un maximum de services inclus. (Si toutefois vous souhaitez réévaluer votre offre actuelle, notre service dédié reste joignable au 01 78 56 95 52).\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Demande de Dédommagement (Avant ou Après clôture du ticket incident)",
+                expert: false,
+                text: `* Si votre ticket d'incident est encore en cours : Nous pourrons enregistrer votre demande de dédommagement dès que le ticket sera officiellement clôturé, ce qui est indispensable pour comptabiliser le nombre exact de jours d'interruption 😊.\n* Si votre ticket d'incident est clôturé : Suite à la résolution de votre incident, je viens de mettre en place une demande de dédommagement auprès de notre service dédié. Vous recevrez un retour de leur part directement par e-mail dès son traitement !\n\nTrès bonne journée à vous,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Impayé Free Flex (Restitution du mobile) & Anciennes factures post-résiliation",
+                expert: false,
+                text: `* Impayé sur location Free Flex : Conformément aux Conditions Générales de Location, en l'absence de régularisation dans les délais prévus, le contrat de location peut être résilié. Le téléphone devra alors être restitué à Free et les mensualités restantes demeureront dues. Je vous invite à régulariser la situation au plus vite ou à vous rendre en boutique Free.\n* Consulter des factures sur un abonnement résilié depuis longtemps : Vous pouvez joindre le serveur dédié aux archives de facturation au 08 92 13 51 61.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Retour Box 4G (Backup), Résiliation McAfee & Droit de Rétractation (14j)",
+                expert: false,
+                text: `* Renvoyer un Backup Box 4G : Allez sur votre Espace Abonné Freebox > Ma Freebox > Gérer l'option Backup > Résilier mon option Backup Internet > Télécharger pour imprimer votre étiquette de retour point relais.\n* Résilier l'option McAfee Sécurité : Allez sur votre Espace Abonné Freebox > Mon Abonnement > Protéger mes équipements avec McAfee > cliquez sur le lien de résiliation et confirmez.\n* Exercer votre droit de rétractation (sous 14 jours) :\n  - Pour une ligne Mobile : Cliquez sur le lien "Rétractation" tout en bas du site https://mobile.free.fr/ et validez depuis votre Espace Abonné.\n  - Pour une nouvelle souscription Freebox : Envoyez le formulaire de fin des Conditions Générales d'Abonnement à FREEBOX RÉTRACTATION – 6 Rue Désir Prévost – 91075 Bondoufle (et appelez le 01 78 56 95 52).\n  - Pour une migration Freebox : N'allez pas chercher le colis au point relais et envoyez un courrier signé avec vos identifiants à Free Rétractation – 75371 Paris Cedex 08.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Obtenir le Code RIO Fixe (Liste des numéros de tous les opérateurs)",
+                expert: false,
+                text: `Pour obtenir le code RIO de votre ligne fixe, composez gratuitement le 3179 directement depuis le téléphone branché à votre box.\n\nSi vous êtes dans l'impossibilité d'appeler depuis votre ligne fixe, appelez gratuitement le serveur vocal de votre opérateur depuis votre mobile :\n* Free : 0805 92 3179\n* Orange : 0800 00 3179\n* SFR / SRR : 0800 97 3179\n* Bouygues Telecom : 0800 943 943\n* Numéricable : 0805 85 89 85\n* OVH : 0805 69 3179\n* Sosh / RED / Prixtel / Virgin / UKTelecom / Réseau Santé Social : 0800 71 3179\n* Keyyo : 0805 031 790 | IP Directions : 0805 28 3179 | Legos : 0805 08 41 98\n* Outremer / Mobius : 0805 51 3179 | Mediaserv : 0805 575 575 | Zeop : 0262 61 62 99\n\nBelle journée à vous,`
+            }
+        ];
+
+        const LS = {
+            get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+            set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+        };
+
+        const customModels = LS.get('fp_custom_models', []);
+        let allModels = [...customModels, ...baseModels];
+        const favs = new Set(LS.get('fp_favs', []));
+        const usage = LS.get('fp_usage', {});
+        let favOnly = false;
+        const keyOf = m => m.cat + '|' + m.title;
+
+        // Formule de politesse + Variables dynamiques (Prénom, Date, Heure, Numéro/Relais)
+        function adaptGreeting(t) {
+            const mode = document.getElementById('dynTime') ? document.getElementById('dynTime').value : 'auto';
+            const name = document.getElementById('dynName') ? document.getElementById('dynName').value.trim() : '';
+            const dateVal = document.getElementById('dynDate') ? document.getElementById('dynDate').value.trim() : '';
+            const hourVal = document.getElementById('dynHour') ? document.getElementById('dynHour').value.trim() : '';
+            const extraVal = document.getElementById('dynExtra') ? document.getElementById('dynExtra').value.trim() : '';
+
+            const hour = new Date().getHours();
+            const isEvening = mode === 'evening' || (mode === 'auto' && (hour >= 17 || hour < 5));
+            const isWeekend = mode === 'weekend';
+
+            let out = t;
+
+            // Injection des variables saisies en haut
+            if (dateVal) {
+                out = out.replace(/\[Date\]/g, dateVal).replace(/\[Durée\/Date\]/g, dateVal);
+            }
+            if (hourVal) {
+                out = out.replace(/entre \[Heure début\] et \[Heure fin\]/g, 'sur le créneau ' + hourVal)
+                         .replace(/\[Heure\]/g, hourVal);
+            }
+            if (extraVal) {
+                out = out.replace(/\[Numéro\]/g, extraVal)
+                         .replace(/\[Nom et Adresse du Point Relais\]/g, extraVal);
+            }
+
+            // Adaptation soirée ou week-end
+            if (isWeekend) {
+                out = out.replace(/\b(Belle|belle|Bonne|bonne|Excellente|excellente) journée/g, 'Bon week-end')
+                         .replace(/☀️/g, '🎉');
+            } else if (isEvening) {
+                out = out.replace(/\b(Belle|belle|Bonne|bonne|Excellente|excellente) journée/g, '$1 soirée')
+                         .replace(/(soirée[^\n]*?)☀️/g, '$1🌙');
+            }
+
+            // Préfixe Bonjour / Bonsoir + Prénom si renseigné
+            if (name) {
+                const hello = isEvening ? 'Bonsoir' : 'Bonjour';
+                out = `${hello} ${name},\n\n` + out;
+            }
+
+            return out;
+        }
+
+        const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        let searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
+
+        // Liens officiels complets de l'écosystème Free / Iliad
+        const OFFICIAL_LINKS = [
+            ['🌐 Assistance Free', 'https://assistance.free.fr'],
+            ['📦 Espace Abonné Freebox', 'https://subscribe.free.fr/login/'],
+            ['📱 Espace Abonné Mobile', 'https://mobile.free.fr/account'],
+            ['📶 Portail Free Mobile', 'https://mobile.free.fr/'],
+            ['🏠 Portail Freebox', 'https://www.free.fr/freebox/'],
+            ['📺 OQEE / Free TV', 'https://oqee.tv/'],
+            ['🗺️ Carte Fibre FTTH', 'https://www.free.fr/freebox/carte-fibre-optique/'],
+            ['📡 Couverture 4G/5G', 'https://mobile.free.fr/couverture/'],
+            ['✉️ Webmail Zimbra', 'https://zimbra.free.fr/'],
+            ['🏪 Boutiques & Bornes Free', 'https://www.free.fr/boutiques/'],
+            ['⚙️ Freebox OS (Local)', 'http://mafreebox.freebox.fr/'],
+            ['🏢 Groupe Iliad (Xavier Niel)', 'https://www.iliad.fr/']
+        ];
+        const urlsOf = t => [...new Set((t.match(/https?:\/\/[^\s)"'`]+/g) || []).map(u => u.replace(/[.,;:!?]+$/, '')))];
+
+        function initLinks() {
+            const nav = document.getElementById('officialLinks');
+            nav.innerHTML = '';
+            OFFICIAL_LINKS.forEach(([label, url]) => {
+                const a = document.createElement('a');
+                a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = label;
+                nav.appendChild(a);
+            });
+            const tel = document.createElement('span');
+            tel.className = 'tel'; tel.textContent = '☎ 3244 · RIO : 3179 · ID Mobile : 555';
+            nav.appendChild(tel);
+        }
+
+        function deepSearch() {
+            const q = document.getElementById('searchInput').value.trim() || 'assistance freebox';
+            window.open('https://www.google.fr/search?q=site:free.fr+' + encodeURIComponent(q), '_blank');
+        }
+
+        const THEMES = [['light', '☀️ Clair'], ['dark', '🌙 Sombre'], ['sw', '⚔️ Star Wars']];
+        function applyTheme(t) {
+            if (!THEMES.some(x => x[0] === t)) t = 'light';
+            document.documentElement.dataset.theme = t;
+            const b = document.getElementById('themeBtn');
+            if (b) b.textContent = THEMES.find(x => x[0] === t)[1];
+            LS.set('fp_theme', t);
+        }
+        function cycleTheme() {
+            const cur = document.documentElement.dataset.theme || 'light';
+            const i = THEMES.findIndex(x => x[0] === cur);
+            applyTheme(THEMES[(i + 1) % THEMES.length][0]);
+        }
+
+        function populateCategories() {
+            const select = document.getElementById('categorySelect');
+            const modalCat = document.getElementById('newCat');
+            const currentVal = select.value || 'all';
+            select.innerHTML = '<option value="all">📁 Tous les pôles</option>';
+            modalCat.innerHTML = '';
+            [...new Set(allModels.map(m => m.cat))].forEach(c => {
+                const o = document.createElement('option');
+                o.value = c; o.textContent = c;
+                select.appendChild(o);
+
+                const o2 = document.createElement('option');
+                o2.value = c; o2.textContent = c;
+                modalCat.appendChild(o2);
+            });
+            select.value = currentVal;
+        }
+
+        function initApp() {
+            applyTheme(document.documentElement.dataset.theme || 'light');
+            initLinks();
+            populateCategories();
+            renderCards();
+        }
+
+        function toggleFavOnly() {
+            favOnly = !favOnly;
+            document.getElementById('favOnly').classList.toggle('active', favOnly);
+            renderCards();
+        }
+
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(toast.t);
+            toast.t = setTimeout(() => t.classList.remove('show'), 1400);
+        }
+
+        function renderPoles(order, counts, active) {
+            const nav = document.getElementById('poleBar');
+            nav.innerHTML = '';
+            const total = Object.values(counts).reduce((x, y) => x + y, 0);
+            const mk = (label, value, n) => {
+                const b = document.createElement('button');
+                b.className = 'pole-chip' + (active === value ? ' active' : '');
+                b.textContent = label + ' · ' + n;
+                b.onclick = () => { document.getElementById('categorySelect').value = value; renderCards(); };
+                nav.appendChild(b);
+            };
+            mk('Tous', 'all', total);
+            order.forEach(c => mk(c.replace(/^\d+\.\s*/, '').split(/[,(]/)[0].trim(), c, counts[c] || 0));
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            const cat = document.getElementById('categorySelect').value;
+            const words = norm(document.getElementById('searchInput').value).split(/\s+/).filter(Boolean);
+
+            const catOrder = [...new Set(allModels.map(m => m.cat))];
+            const counts = {};
+            const list = [];
+            allModels.forEach((m, i) => {
+                if (favOnly && !favs.has(keyOf(m))) return;
+                if (!words.every(w => searchIndex[i].includes(w))) return;
+                counts[m.cat] = (counts[m.cat] || 0) + 1;
+                if (cat !== 'all' && m.cat !== cat) return;
+                list.push(i);
+            });
+            renderPoles(catOrder, counts, cat);
+
+            list.sort((a, b) => {
+                const ca = catOrder.indexOf(allModels[a].cat), cb = catOrder.indexOf(allModels[b].cat);
+                if (ca !== cb) return ca - cb;
+                const fa = favs.has(keyOf(allModels[a])) ? 1 : 0, fb = favs.has(keyOf(allModels[b])) ? 1 : 0;
+                if (fa !== fb) return fb - fa;
+                const ua = usage[keyOf(allModels[a])] || 0, ub = usage[keyOf(allModels[b])] || 0;
+                return ub - ua || a - b;
+            });
+
+            container.innerHTML = '';
+            let lastCat = null;
+            list.forEach(i => {
+                const m = allModels[i], k = keyOf(m);
+                if (cat === 'all' && m.cat !== lastCat) {
+                    const h = document.createElement('div');
+                    h.className = 'section-title';
+                    h.textContent = m.cat + ' (' + counts[m.cat] + ')';
+                    container.appendChild(h);
+                }
+                lastCat = m.cat;
+                const card = document.createElement('div');
+                card.className = 'card' + (m.expert ? ' expert' : '');
+
+                const head = document.createElement('div');
+                head.className = 'card-header';
+                const badge = document.createElement('span');
+                badge.className = 'badge' + (m.expert ? ' expert' : '');
+                badge.textContent = m.cat;
+                const used = document.createElement('span');
+                used.className = 'used';
+                used.textContent = usage[k] ? 'Utilisé ' + usage[k] + '×' : '';
+                const star = document.createElement('button');
+                star.className = 'star' + (favs.has(k) ? ' on' : '');
+                star.title = 'Épingler en favori';
+                star.textContent = '★';
+                star.onclick = () => {
+                    favs.has(k) ? favs.delete(k) : favs.add(k);
+                    star.classList.toggle('on', favs.has(k));
+                    LS.set('fp_favs', [...favs]);
+                };
+                head.append(badge, used, star);
+
+                const h2 = document.createElement('h2');
+                h2.textContent = m.title;
+                const ta = document.createElement('textarea');
+                ta.value = adaptGreeting(m.text);
+
+                const btnRow = document.createElement('div');
+                btnRow.className = 'btn-row';
+
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = '⚡ Copier le message';
+                btn.onclick = () => copyText(ta, btn, k, used);
+                btnRow.appendChild(btn);
+
+                const urls = urlsOf(m.text);
+                const linkBox = document.createElement('div');
+                linkBox.className = 'card-links';
+                urls.forEach(u => {
+                    const a = document.createElement('a');
+                    a.href = u; a.target = '_blank'; a.rel = 'noopener';
+                    a.textContent = '🔗 ' + u.replace(/^https?:\/\/(www\.)?/, '');
+                    linkBox.appendChild(a);
+                });
+
+                card.append(head, h2, ta);
+                if (urls.length) card.appendChild(linkBox);
+                card.appendChild(btnRow);
+                container.appendChild(card);
+            });
+
+            if (!list.length) container.innerHTML = '<div class="empty">Aucune trame locale trouvée. Clique sur "🌐 Chercher Site Free" juste au-dessus pour lancer la recherche officielle !</div>';
+            document.getElementById('counter').textContent = list.length + ' trame(s) affichée(s) sur ' + allModels.length + ' au total.';
+        }
+
+        function copyText(ta, btn, key, usedEl) {
+            let txt = ta.value;
+            const done = () => {
+                usage[key] = (usage[key] || 0) + 1;
+                LS.set('fp_usage', usage);
+                usedEl.textContent = 'Utilisé ' + usage[key] + '×';
+                const o = btn.textContent;
+                btn.textContent = 'Copié ! ✔';
+                btn.classList.add('copied');
+                toast('Message copié ✔');
+                setTimeout(() => { btn.textContent = o; btn.classList.remove('copied'); }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt).then(done).catch(() => { ta.select(); document.execCommand('copy'); done(); });
+            } else { ta.select(); document.execCommand('copy'); done(); }
+        }
+
+        // Ajout et export de nouvelles trames
+        function openAddModal() { document.getElementById('addModal').classList.add('open'); }
+        function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+
+        function saveNewTrame() {
+            const cat = document.getElementById('newCat').value;
+            const title = document.getElementById('newTitle').value.trim();
+            const expert = document.getElementById('newExpert').checked;
+            const text = document.getElementById('newText').value.trim();
+            if (!title || !text) return alert('Merci de remplir le titre et le texte de la trame.');
+
+            const newItem = { cat, title: expert && !title.includes('[Expert]') ? '⭐ [Expert] ' + title : title, expert, text };
+            customModels.unshift(newItem);
+            LS.set('fp_custom_models', customModels);
+            allModels = [...customModels, ...baseModels];
+            searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
+            closeAddModal();
+            renderCards();
+            toast('Nouvelle trame enregistrée ✔');
+        }
+
+        function exportCustom() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allModels, null, 2));
+            const a = document.createElement('a');
+            a.href = dataStr;
+            a.download = "trames-free-proxi-complet.json";
+            a.click();
+        }
+
+        document.addEventListener('keydown', e => {
+            const search = document.getElementById('searchInput');
+            const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+            if (e.key === '/' && !typing) { e.preventDefault(); search.focus(); search.select(); }
+            else if (e.key === 'Escape') { search.value = ''; search.blur(); closeAddModal(); renderCards(); }
+            else if (e.key === 'Enter' && document.activeElement === search) {
+                const b = document.querySelector('#cardsContainer .btn');
+                if (b) b.click();
+            }
+        });
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
