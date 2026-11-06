@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Proxi – Cockpit Expert & Réponses Rapides</title>
+    <title>Free Proxi – Cockpit Réponses Rapides</title>
     <style>
         :root {
             --free-red: #cc0000;
@@ -36,16 +36,16 @@
         }
         .brand { display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:8px; }
         .brand h1 { margin:0; }
-        .avatar { height:64px; width:64px; border-radius:50%; display:block; box-shadow:0 2px 8px rgba(0,0,0,.18); }
+        .avatar { height:68px; width:68px; border-radius:50%; display:block; object-fit:cover; box-shadow:0 2px 10px rgba(0,0,0,.22); border:2px solid var(--free-red); }
 
-        /* BARRE DYNAMIQUE PROXI (PRÉNOM, SALUTATION, VARIABLES RDV, RECHERCHE EXTERNE) */
+        /* BARRE DYNAMIQUE PROXI */
         .dyn-bar {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             align-items: center;
             justify-content: center;
-            max-width: 1300px;
+            max-width: 1380px;
             margin: 0 auto 14px auto;
             background: var(--card-bg);
             padding: 12px 16px;
@@ -57,12 +57,12 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             font-weight: 600;
         }
         .dyn-input, .dyn-select {
             padding: 7px 10px;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             border: 1px solid #ccc;
             border-radius: 6px;
             background: #fff;
@@ -73,13 +73,13 @@
             border-color: var(--free-red);
         }
         .btn-mini {
-            padding: 7px 12px;
+            padding: 7px 11px;
             border-radius: 6px;
             border: 1px solid #d5d9de;
             background: #fff;
             color: var(--dark);
             font-weight: 600;
-            font-size: 0.82rem;
+            font-size: 0.81rem;
             cursor: pointer;
             transition: all .15s;
         }
@@ -92,16 +92,17 @@
             color: #fff;
             border-color: var(--expert-color);
         }
-        .btn-mini.primary:hover {
-            opacity: 0.9;
+        .btn-mini.reset {
+            background: #e74c3c;
             color: #fff;
+            border-color: #e74c3c;
         }
 
         .filters {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
-            max-width: 1300px;
+            max-width: 1380px;
             margin: 0 auto 16px auto;
             flex-wrap: wrap;
             position: sticky;
@@ -113,12 +114,12 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .search-bar, .category-select {
-            padding: 11px 14px;
-            font-size: 0.96rem;
+            padding: 10px 14px;
+            font-size: 0.95rem;
             border: 2px solid #ddd;
             border-radius: 8px;
             flex: 1;
-            min-width: 240px;
+            min-width: 220px;
             background: white;
             transition: border-color 0.2s;
         }
@@ -126,12 +127,12 @@
             outline: none;
             border-color: var(--free-red);
         }
-        .chip { padding:10px 14px; border:2px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; font-size:0.92rem; font-weight:600; }
+        .chip { padding:9px 13px; border:2px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; font-size:0.88rem; font-weight:600; }
         .chip.active { background:#fff4cc; border-color:#f1c40f; }
 
         .counter {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             font-weight: bold;
             color: #555;
             font-size: 0.92rem;
@@ -139,14 +140,14 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 20px;
+            gap: 18px;
             max-width: 1600px;
             margin: 0 auto;
         }
         .card {
             background: var(--card-bg);
             border-radius: 10px;
-            padding: 18px;
+            padding: 16px;
             box-shadow: 0 3px 6px rgba(0,0,0,0.05);
             border-top: 4px solid var(--proxi-blue);
             display: flex;
@@ -159,20 +160,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-            gap: 8px;
+            margin-bottom: 6px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
         .card h2 {
-            font-size: 1.05rem;
-            margin: 4px 0 10px 0;
+            font-size: 1.02rem;
+            margin: 4px 0 8px 0;
             line-height: 1.3;
             color: var(--dark);
         }
         .badge {
             background-color: #ebf5fb;
             color: var(--proxi-blue);
-            font-size: 0.75rem;
-            padding: 4px 8px;
+            font-size: 0.73rem;
+            padding: 3px 8px;
             border-radius: 4px;
             font-weight: bold;
         }
@@ -180,19 +182,31 @@
             background-color: #e8f8f5;
             color: var(--expert-color);
         }
+        .badge-warn {
+            background-color: #fef3c7;
+            color: #d97706;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            border: 1px solid #f59e0b;
+        }
         textarea {
             width: 100%;
-            height: 185px;
+            height: 175px;
             padding: 10px;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
             resize: vertical;
             font-family: inherit;
-            font-size: 0.9rem;
+            font-size: 0.89rem;
             line-height: 1.45;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             box-sizing: border-box;
             background-color: #fafafa;
+        }
+        body.compact textarea {
+            height: 105px;
         }
         textarea:focus {
             outline: none;
@@ -212,12 +226,25 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             transition: background 0.2s;
             flex: 1;
         }
         .btn:hover { background-color: #a30000; }
         .btn.copied { background-color: #27ae60; }
+        .btn-upsell {
+            background-color: #2c3e50;
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.82rem;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+        .btn-upsell:hover { opacity: 0.88; }
 
         .star { background:none; border:none; cursor:pointer; font-size:1.3rem; line-height:1; color:#ccc; padding:0 2px; }
         .star.on { color:#f1c40f; }
@@ -227,20 +254,19 @@
         .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#27ae60; color:#fff; padding:12px 22px; border-radius:30px; font-weight:bold; box-shadow:0 6px 18px rgba(0,0,0,.25); transition:transform .25s; z-index:200; pointer-events:none; }
         .toast.show { transform:translateX(-50%) translateY(0); }
         .empty { grid-column:1/-1; text-align:center; color:#888; padding:40px; }
-        .links { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; max-width:1300px; margin:0 auto 14px; }
+        .links { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; max-width:1380px; margin:0 auto 14px; }
         .links a, .card-links a { text-decoration:none; font-size:.8rem; padding:5px 11px; border-radius:20px; background:#fff; border:1px solid #d5d9de; color:var(--proxi-blue); font-weight:600; }
         .links a:hover, .card-links a:hover { border-color:var(--free-red); color:var(--free-red); }
         .links .tel { font-size:.8rem; padding:5px 11px; border-radius:20px; background:#fdecea; color:var(--free-red); font-weight:700; }
-        .card-links { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-        .card-links a { font-size:.74rem; padding:3px 9px; background:#f4f9fd; }
+        .card-links { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+        .card-links a { font-size:.73rem; padding:3px 9px; background:#f4f9fd; }
 
-        .poles { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; max-width:1300px; margin:0 auto 14px; }
-        .pole-chip { padding:8px 14px; border:2px solid #ddd; border-radius:22px; background:#fff; color:var(--dark); cursor:pointer; font-size:.84rem; font-weight:600; transition:all .15s; }
+        .poles { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; max-width:1380px; margin:0 auto 14px; }
+        .pole-chip { padding:7px 13px; border:2px solid #ddd; border-radius:22px; background:#fff; color:var(--dark); cursor:pointer; font-size:.83rem; font-weight:600; transition:all .15s; }
         .pole-chip:hover { border-color:var(--free-red); }
         .pole-chip.active { background:var(--free-red); border-color:var(--free-red); color:#fff; }
-        .section-title { grid-column:1/-1; font-size:1.15rem; font-weight:700; color:var(--dark); border-bottom:2px solid var(--free-red); padding:6px 4px; margin-top:12px; }
+        .section-title { grid-column:1/-1; font-size:1.12rem; font-weight:700; color:var(--dark); border-bottom:2px solid var(--free-red); padding:6px 4px; margin-top:10px; }
 
-        /* MODAL AJOUT TRAME */
         .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:300; padding:16px; }
         .modal-backdrop.open { display:flex; }
         .modal-box { background:var(--card-bg); color:var(--dark); max-width:560px; width:100%; border-radius:12px; padding:22px; box-shadow:0 12px 32px rgba(0,0,0,0.35); display:flex; flex-direction:column; gap:12px; }
@@ -258,6 +284,7 @@
         html[data-theme="dark"] textarea:focus { background:#1c2128; }
         html[data-theme="dark"] .badge { background:#1d3345; color:#7cc0ee; }
         html[data-theme="dark"] .badge.expert { background:#173a33; color:#4fd1b5; }
+        html[data-theme="dark"] .badge-warn { background:#422006; color:#fbbf24; border-color:#d97706; }
         html[data-theme="dark"] .links a, html[data-theme="dark"] .card-links a { background:#232a33; border-color:#3a4350; color:#7cc0ee; }
         html[data-theme="dark"] .links .tel { background:#3a1d1d; color:#ff7b7b; }
         html[data-theme="dark"] .used, html[data-theme="dark"] .hint, html[data-theme="dark"] .empty { color:#8a94a3; }
@@ -271,7 +298,7 @@
             background-image:radial-gradient(1px 1px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 130px 90px,#fff,transparent),radial-gradient(1.6px 1.6px at 210px 160px,#ffe9a8,transparent),radial-gradient(1px 1px at 70px 190px,#fff,transparent),radial-gradient(1.2px 1.2px at 180px 40px,#cfe3ff,transparent),radial-gradient(1px 1px at 240px 230px,#fff,transparent); }
         html[data-theme="sw"] .header h1 { color:#ffe81f; text-transform:uppercase; letter-spacing:3px; font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif; text-shadow:0 0 14px rgba(255,232,31,.45); }
         html[data-theme="sw"] .header p, html[data-theme="sw"] .counter { color:#8fa3c8; }
-        html[data-theme="sw"] .avatar { box-shadow:0 0 0 2px #4fc3ff, 0 0 16px rgba(79,195,255,.7); }
+        html[data-theme="sw"] .avatar { box-shadow:0 0 0 2px #4fc3ff, 0 0 16px rgba(79,195,255,.7); border-color:#4fc3ff; }
         html[data-theme="sw"] .filters, html[data-theme="sw"] .dyn-bar { background:rgba(5,8,20,.92); border:1px solid #1d2a4a; box-shadow:0 0 18px rgba(79,195,255,.18); }
         html[data-theme="sw"] .search-bar, html[data-theme="sw"] .category-select, html[data-theme="sw"] .chip, html[data-theme="sw"] .dyn-input, html[data-theme="sw"] .dyn-select, html[data-theme="sw"] .btn-mini { background:#070b18; color:#dfe6f3; border-color:#25345a; }
         html[data-theme="sw"] .search-bar:focus, html[data-theme="sw"] .category-select:focus { border-color:#4fc3ff; box-shadow:0 0 10px rgba(79,195,255,.5); }
@@ -303,7 +330,7 @@
 
     <div class="header">
         <div class="brand">
-            <img class="avatar" alt="Avatar" src="data:image/png;base64,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">
+            <img class="avatar" alt="Avatar" src="data:image/png;base64,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">
             <h1>Outil de Réponses Rapides — Cockpit Proxi</h1>
         </div>
         <p>Base intégrale classée en 7 Pôles Relation Client + Variables & Horloge Dynamiques</p>
@@ -313,7 +340,7 @@
     <div class="dyn-bar">
         <div class="dyn-group">
             <span>👤 Abonné :</span>
-            <input type="text" id="dynName" class="dyn-input" placeholder="Prénom / M. Martin" style="width:130px" oninput="renderCards()">
+            <input type="text" id="dynName" class="dyn-input" placeholder="Prénom / M. Martin" style="width:125px" oninput="renderCards()">
         </div>
         <div class="dyn-group">
             <span>🕒 Salutation :</span>
@@ -325,17 +352,28 @@
             </select>
         </div>
         <div class="dyn-group">
+            <span>📟 Étape Box :</span>
+            <select id="dynStep" class="dyn-select" onchange="renderCards()">
+                <option value="">[2 / 3 / 4]</option>
+                <option value="2">Étape 2</option>
+                <option value="3">Étape 3</option>
+                <option value="4">Étape 4</option>
+                <option value="6">Étape 6</option>
+            </select>
+        </div>
+        <div class="dyn-group">
             <span>📅 Date/RDV :</span>
-            <input type="text" id="dynDate" class="dyn-input" placeholder="Ex: 12/11" style="width:75px" oninput="renderCards()">
-            <input type="text" id="dynHour" class="dyn-input" placeholder="Ex: 14h-16h" style="width:85px" oninput="renderCards()">
+            <input type="text" id="dynDate" class="dyn-input" placeholder="Ex: 12/11" style="width:70px" oninput="renderCards()">
+            <input type="text" id="dynHour" class="dyn-input" placeholder="Ex: 14h-16h" style="width:80px" oninput="renderCards()">
         </div>
         <div class="dyn-group">
             <span>📞 N° / Relais :</span>
-            <input type="text" id="dynExtra" class="dyn-input" placeholder="N° tél ou Point Relais" style="width:140px" oninput="renderCards()">
+            <input type="text" id="dynExtra" class="dyn-input" placeholder="N° tél ou Point Relais" style="width:135px" oninput="renderCards()">
         </div>
         <div class="dyn-group">
-            <button class="btn-mini primary" onclick="openAddModal()">+ Ajouter une trame</button>
-            <button class="btn-mini" onclick="exportCustom()">💾 Export JSON</button>
+            <button class="btn-mini reset" onclick="resetSubscriber()" title="Vider les infos de l'abonné entre 2 tickets">🧹 Reset Abonné</button>
+            <button class="btn-mini primary" onclick="openAddModal()">+ Trame</button>
+            <button class="btn-mini" onclick="exportCustom()">💾 Export</button>
         </div>
     </div>
 
@@ -345,13 +383,14 @@
             <option value="all">📁 Tous les pôles</option>
         </select>
         <input type="text" id="searchInput" class="search-bar" oninput="renderCards()" placeholder="🔍 Mot-clé ou demande abonné (ex: ODR, RIO, eSIM, FreePlug, 8bit, GAMOT...)" autocomplete="off">
-        <button class="chip" onclick="deepSearch('assistance')" title="Chercher cette saisie sur Assistance Free">🌐 Chercher Site Free</button>
+        <button class="chip" onclick="deepSearch()" title="Chercher cette saisie sur Assistance Free">🌐 Chercher Site Free</button>
         <button id="favOnly" class="chip" onclick="toggleFavOnly()">⭐ Favoris</button>
+        <button id="compactBtn" class="chip" onclick="toggleCompact()" title="Réduire la hauteur des cartes pour écran partagé">📐 Vue Compacte</button>
         <button id="themeBtn" class="chip" onclick="cycleTheme()" title="Changer de thème"></button>
     </div>
 
     <nav class="poles" id="poleBar" aria-label="Pôles"></nav>
-    <div class="hint"><kbd>/</kbd> rechercher · <kbd>Entrée</kbd> copier le 1er résultat · <kbd>Échap</kbd> effacer · Les variables entre crochets se remplissent automatiquement avec la barre du haut</div>
+    <div class="hint"><kbd>/</kbd> rechercher · <kbd>Entrée</kbd> copier le 1er résultat · <kbd>Échap</kbd> effacer · Le bouton <b>+ 🎁 Fidélité</b> ajoute automatiquement l'offre mobile 9,99 € avant la formule de fin</div>
 
     <nav class="links" id="officialLinks" aria-label="Liens officiels Free"></nav>
 
@@ -482,97 +521,97 @@
             // PÔLE 2 : 🛠️ DIAGNOSTIC & DÉPANNAGE RÉSEAU FIXE (FIBRE / xDSL)
             // =========================================================================
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "⭐ [Expert] Diagnostic Fibre / Box bloquée (Étapes 2, 3 ou 4)",
                 expert: true,
                 text: `Suite à l'analyse de votre ligne, votre Freebox ne parvient pas à synchroniser le signal optique (blocage en étape [2 / 3 / 4]).\n\nAvant de planifier l'intervention d'un technicien à votre domicile, je vous invite à effectuer ces trois vérifications rapides sur votre installation :\n1. Câblage optique : Vérifiez que la jarretière optique (le câble fin, souvent blanc ou jaune à embouts verts/bleus) n'est ni pliée, ni pincée, et qu'elle est bien enfoncée jusqu'au "clic" côté Freebox et côté boîtier fibre mural (PTO).\n2. Alimentation : Assurez-vous que vos Freebox utilisent leurs blocs d'alimentation d'origine, branchés directement sur une prise murale (évitez les multiprises si possible).\n3. Redémarrage : Débranchez électriquement le Server pendant 30 secondes, puis rebranchez-le.\n\nSi le blocage persiste après ces vérifications, répondez directement à ce message en me précisant vos créneaux de disponibilité afin que j'ouvre un ticket d'incident et planifie un rendez-vous technique.\n\nBonne journée,`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "⭐ [Expert] Suivi de Ticket d'incident & Remboursement",
                 expert: true,
                 text: `Je fais suite à votre demande concernant l'incident en cours sur votre ligne. Votre ticket d'incident est bien ouvert et pris en charge par nos équipes techniques.\n\n* Suivi en temps réel : Vous pouvez consulter l'avancement précis des opérations à tout moment depuis votre Espace Abonné, rubrique Mon Assistance, ou sur l'application mobile Freebox Espace Abonné.\n* Continuité de service (Backup) : Si vous disposez d'un forfait Free Mobile, n'hésitez pas à utiliser le partage de connexion de votre smartphone en attendant le rétablissement de la fibre.\n* Dédommagement : Dès la clôture officielle de votre ticket d'incident, vous pourrez effectuer une demande de remboursement au prorata de la durée de coupure directement depuis votre Espace Abonné.\n\nJe garde un œil sur votre dossier et reviens vers vous dès que j'ai un retour des équipes terrain.\n\nBonne journée,`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "DERCO en cours (Panne collective secteur)",
                 expert: false,
                 text: `Un incident réseau s'est déclaré sur votre secteur, affectant actuellement plusieurs connexions Fibre et ADSL en Ille-et-Vilaine. Nos techniciens sont mobilisés sur le terrain pour résoudre cette panne au plus vite.\n\nNos équipes restent mobilisées afin de rétablir durablement le service sur toute la zone.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "DERCO : Estimation de délai",
                 expert: false,
                 text: `À ce stade, nous n'avons pas encore de communication définitive sur l'heure exacte de rétablissement. D'après les premiers retours terrain, le dépannage pourrait prendre jusqu'à [Durée/Date], mais il ne s'agit que d'une estimation prévisionnelle susceptible d'évoluer.\n\nNos équipes mettent tout en œuvre pour réparer le réseau Fibre au plus vite, je vous tiens informé de la suite des événements.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "DERCO Résolu (Redémarrage requis)",
                 expert: false,
                 text: `En raison d'un grand nombre de sollicitations, je n'ai pas pu vous rappeler immédiatement et j'en suis navré. Un incident réseau collectif a eu lieu ce matin et nos équipes techniques ont rétabli la connexion globale 😊.\n\nS'il vous manque encore des services, je vous invite à redémarrer électriquement vos deux boîtiers en commençant par le Freebox Server (celui qui affiche l'heure), puis votre Player TV.\n\nNous nous excusons pour la gêne occasionnée. Bonne journée à vous !`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Ticket Incident Fibre 1 (Demande de l'étape affichée)",
                 expert: false,
                 text: `Un ticket d'incident Fibre a bien été ouvert sur votre ligne. Rassurez-vous, nous mettons tout en œuvre pour rétablir vos services dans les meilleurs délais.\n\nPour affiner mon diagnostic, pouvez-vous m'indiquer ce qu'affiche l'écran de votre Freebox Server actuellement (l'heure, ou blocage en étape 2, 3, 4...) ?\n\nDans l'attente de votre retour,`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Ticket Incident Fibre 2 (Manipulation jarretière optique)",
                 expert: false,
                 text: `Effectivement, nous ne parvenons plus à joindre votre Freebox à distance. Même si rien n'a été touché dans votre installation, je vous invite à effectuer cette manipulation précise :\n1. Débranchez délicatement le câble Fibre (entre la Freebox et le boîtier mural PTO) en faisant attention au petit clip de sécurité sur l'embout.\n2. Détendez complètement ce câble fin et assurez-vous qu'aucun meuble ou objet n'exerce une pression, une tension ou un pincement dessus.\n3. Rebranchez-le bien droit jusqu'au "clic", puis redémarrez électriquement votre Freebox.\n\nPouvez-vous m'indiquer si la Freebox dépasse l'étape de blocage après cela ?`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Reboot constant ONU V1 (Test convertisseur optique)",
                 expert: false,
                 text: `Le redémarrage en boucle de votre box peut provenir du boîtier convertisseur optique (ONU) branché à l'arrière. Ce convertisseur utilise un embout spécial sur lequel est reliée l'alimentation électrique (emplacement 12V).\n\nPouvez-vous retirer ce convertisseur de la Freebox, séparer le câble d'alimentation de cet embout, puis rebrancher directement le câble d'alimentation seul sur la Freebox (en laissant l'ONU de côté) ? Dites-moi si la Freebox reste bien allumée ainsi.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Test croisé électrique (Inversion FreePlugs Server/Player)",
                 expert: false,
                 text: `Pour déterminer l'origine exacte de la panne électrique, nous devons réaliser un test croisé :\n1. Branchez d'abord votre Freebox directement sur une autre prise électrique murale fonctionnelle.\n2. Si elle ne s'allume toujours pas, inversez les deux blocs d'alimentation (FreePlugs) entre votre Freebox Server et votre boîtier Player TV : branchez l'alimentation de la box Internet sur le boîtier TV, et inversement.\n\nMerci de m'indiquer l'état des voyants (allumé/éteint/couleur) de chaque boîtier AVANT et APRÈS l'inversion. Cela nous permettra de savoir s'il faut remplacer uniquement le bloc d'alimentation, la Freebox, ou les deux.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Reset Usine Freebox Server",
                 expert: false,
                 text: `Pour corriger ce dysfonctionnement, je vous invite à effectuer une réinitialisation d'usine de votre Freebox Server (le boîtier principal qui affiche l'heure) :\n1. Débranchez puis rebranchez électriquement la Freebox.\n2. Dès que le logo "Free" apparaît sur l'écran, appuyez immédiatement sur l'une des flèches en façade.\n3. Dans le menu qui s'affiche, descendez jusqu'à "Paramétrage d'usine" et validez avec la flèche de droite.\n4. Une fois l'heure réaffichée, redémarrez une dernière fois la box électriquement (sans toucher aux flèches).\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Téléphonie fixe Freebox : Pas de tonalité",
                 expert: false,
                 text: `Pour résoudre l’absence de tonalité sur votre ligne téléphonique Freebox, voici les vérifications à effectuer :\n\n1. Si vous avez souscrit récemment, patientez quelques jours après la réception de votre Freebox : l’activation du numéro 09 peut prendre jusqu’à 72h.\n2. Redémarrez votre Freebox.\n3. Vérifiez que votre téléphone est bien raccordé à votre Freebox.\n4. Dans l’application Free, vérifiez l’état du service téléphonique : si l’icône Téléphone est cerclée de rouge, le service est inactif (ou le matériel défectueux). Testez alors votre installation avec un autre bloc d’alimentation.\n5. Essayez avec un autre téléphone (filaire de préférence), puis avec un autre adaptateur téléphonique : certains rares appareils ne sont pas reconnus par la Freebox.\n\nSi le problème persiste après ces tests, n’hésitez pas à revenir vers nous.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Ticket ADSL & Escalade Orange (GAMOT)",
                 expert: false,
                 text: `Votre ticket d’incident ADSL est bien ouvert et actuellement en cours de traitement par nos services :\n\n* Vérification chez vous : assurez-vous que le câble téléphonique RJ11 (port DSL) est correctement enfoncé au dos de votre Freebox et sur votre prise murale, puis effectuez un redémarrage électrique de la box.\n* Diagnostic technique : un technicien Free va dans un premier temps réaliser les vérifications et tests nécessaires sur nos équipements réseau et votre ligne.\n* Intervention extérieure (si nécessaire) : si ces tests confirment que le dysfonctionnement se situe sur la boucle locale cuivre gérée par l’opérateur d’infrastructure (Orange), une intervention sera alors mandatée auprès de leurs services (ticket GAMOT).\n\nNous faisons le nécessaire et nous revenons vers vous très prochainement avec des nouvelles précises sur l’évolution de votre dossier.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "RDV Technicien : Envoi lien Planning (GRDV) ou À confirmer",
                 expert: false,
                 text: `Suite à l'ouverture de votre ticket d'incident, l'intervention d'un technicien à votre domicile est nécessaire.\n\nUn e-mail vient de vous être envoyé contenant le lien vers notre planning : je vous invite à y sélectionner directement le créneau qui vous convient le mieux. Si vous préférez, indiquez-moi vos disponibilités ici et je validerai le rendez-vous pour vous 😊.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "RDV Technicien : Confirmation & Check-list obligatoire",
                 expert: false,
                 text: `Je vous confirme l’intervention de notre technicien le [Date] entre [Heure début] et [Heure fin].\n\nPour que ce rendez-vous se déroule dans les meilleures conditions, voici quelques rappels importants :\n📞 Notre technicien peut vous appeler au préalable depuis un numéro masqué ou commençant par 01, 06 ou 07 : gardez votre téléphone à portée de main.\n🏠 L’accès à vos prises téléphoniques ou fibre (PTO) doit être totalement dégagé (meubles et objets lourds déplacés).\n👤 Une personne majeure doit impérativement être présente durant toute la durée du créneau.\n🐕 Vos éventuels animaux de compagnie doivent être isolés dans une autre pièce.\n💲 L’intervention est entièrement gratuite.\n\n🕰️ Un empêchement ? Vous pouvez annuler ou reporter le rendez-vous au moins 8h à l’avance, directement ou en nous contactant, nous nous occupons de tout. Cela permet d’éviter la facturation de 49 € pour déplacement à tort.\n\nJe reste disponible si vous avez la moindre question avant l’intervention.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Retard Technicien (Rassurance)",
                 expert: false,
                 text: `Je vous rassure, votre rendez-vous d'aujourd'hui est bien maintenu. Il arrive que le technicien prenne un léger retard en raison du trafic routier, d'une intervention précédente complexe, ou parce qu'il effectue d'abord des vérifications techniques sur l'armoire de rue extérieure avant de sonner chez vous 😊.\n\nMerci beaucoup pour votre patience, il va arriver au plus vite.\n\nBelle journée à vous 😊`
             },
             {
-                cat: "2. 🛠️ Diagnostic & DépANNAGE Réseau Fixe (Fibre / xDSL)",
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Solutions d'attente & Pose Box 4G (Backup)",
                 expert: false,
                 text: `En attendant le rétablissement de votre ligne, voici les solutions temporaires pour rester connecté 😊 :\n🔸 Partage de connexion : Si vous avez un forfait mobile avec suffisamment de data, activez le partage de connexion de votre smartphone pour connecter vos appareils en Wi-Fi.\n🔸 Boîtier Backup 4G : Une intervention peut être programmée pour installer une Box 4G de prêt (sous réserve que la couverture mobile Free soit bonne à l'intérieur de votre logement).\n🔸 Télévision : Vous pouvez brancher votre câble d'antenne TNT directement sur votre téléviseur ou utiliser l'application Free TV sur smartphone/tablette : https://tv.free.fr\n\nBelle journée à vous 😊`
@@ -1085,6 +1124,8 @@
             }
         ];
 
+        const UPSELL_PHRASE = `\n\nPetit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de 9,99 €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`;
+
         const LS = {
             get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -1097,10 +1138,10 @@
         let favOnly = false;
         const keyOf = m => m.cat + '|' + m.title;
 
-        // Formule de politesse + Variables dynamiques (Prénom, Date, Heure, Numéro/Relais)
         function adaptGreeting(t) {
             const mode = document.getElementById('dynTime') ? document.getElementById('dynTime').value : 'auto';
             const name = document.getElementById('dynName') ? document.getElementById('dynName').value.trim() : '';
+            const stepVal = document.getElementById('dynStep') ? document.getElementById('dynStep').value : '';
             const dateVal = document.getElementById('dynDate') ? document.getElementById('dynDate').value.trim() : '';
             const hourVal = document.getElementById('dynHour') ? document.getElementById('dynHour').value.trim() : '';
             const extraVal = document.getElementById('dynExtra') ? document.getElementById('dynExtra').value.trim() : '';
@@ -1111,7 +1152,9 @@
 
             let out = t;
 
-            // Injection des variables saisies en haut
+            if (stepVal) {
+                out = out.replace(/\[2 \/ 3 \/ 4\]/g, stepVal);
+            }
             if (dateVal) {
                 out = out.replace(/\[Date\]/g, dateVal).replace(/\[Durée\/Date\]/g, dateVal);
             }
@@ -1124,7 +1167,6 @@
                          .replace(/\[Nom et Adresse du Point Relais\]/g, extraVal);
             }
 
-            // Adaptation soirée ou week-end
             if (isWeekend) {
                 out = out.replace(/\b(Belle|belle|Bonne|bonne|Excellente|excellente) journée/g, 'Bon week-end')
                          .replace(/☀️/g, '🎉');
@@ -1133,7 +1175,6 @@
                          .replace(/(soirée[^\n]*?)☀️/g, '$1🌙');
             }
 
-            // Préfixe Bonjour / Bonsoir + Prénom si renseigné
             if (name) {
                 const hello = isEvening ? 'Bonsoir' : 'Bonjour';
                 out = `${hello} ${name},\n\n` + out;
@@ -1142,10 +1183,24 @@
             return out;
         }
 
+        function resetSubscriber() {
+            document.getElementById('dynName').value = '';
+            document.getElementById('dynStep').value = '';
+            document.getElementById('dynDate').value = '';
+            document.getElementById('dynHour').value = '';
+            document.getElementById('dynExtra').value = '';
+            renderCards();
+            toast('Infos abonné réinitialisées 🧹');
+        }
+
+        function toggleCompact() {
+            document.body.classList.toggle('compact');
+            document.getElementById('compactBtn').classList.toggle('active', document.body.classList.contains('compact'));
+        }
+
         const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         let searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
 
-        // Liens officiels complets de l'écosystème Free / Iliad
         const OFFICIAL_LINKS = [
             ['🌐 Assistance Free', 'https://assistance.free.fr'],
             ['📦 Espace Abonné Freebox', 'https://subscribe.free.fr/login/'],
@@ -1288,11 +1343,28 @@
                 const card = document.createElement('div');
                 card.className = 'card' + (m.expert ? ' expert' : '');
 
+                const adaptedText = adaptGreeting(m.text);
+                const hasUnfilledVar = /\[[^\]]+\]/.test(adaptedText);
+
                 const head = document.createElement('div');
                 head.className = 'card-header';
                 const badge = document.createElement('span');
                 badge.className = 'badge' + (m.expert ? ' expert' : '');
                 badge.textContent = m.cat;
+
+                const rightBox = document.createElement('div');
+                rightBox.style.display = 'flex';
+                rightBox.style.alignItems = 'center';
+                rightBox.style.gap = '6px';
+
+                if (hasUnfilledVar) {
+                    const warn = document.createElement('span');
+                    warn.className = 'badge-warn';
+                    warn.textContent = '⚠️ Variable [ ]';
+                    warn.title = 'Ce message contient une variable entre crochets à compléter en haut ou dans le texte';
+                    rightBox.appendChild(warn);
+                }
+
                 const used = document.createElement('span');
                 used.className = 'used';
                 used.textContent = usage[k] ? 'Utilisé ' + usage[k] + '×' : '';
@@ -1305,12 +1377,13 @@
                     star.classList.toggle('on', favs.has(k));
                     LS.set('fp_favs', [...favs]);
                 };
-                head.append(badge, used, star);
+                rightBox.append(used, star);
+                head.append(badge, rightBox);
 
                 const h2 = document.createElement('h2');
                 h2.textContent = m.title;
                 const ta = document.createElement('textarea');
-                ta.value = adaptGreeting(m.text);
+                ta.value = adaptedText;
 
                 const btnRow = document.createElement('div');
                 btnRow.className = 'btn-row';
@@ -1318,8 +1391,15 @@
                 const btn = document.createElement('button');
                 btn.className = 'btn';
                 btn.textContent = '⚡ Copier le message';
-                btn.onclick = () => copyText(ta, btn, k, used);
-                btnRow.appendChild(btn);
+                btn.onclick = () => copyText(ta, btn, k, used, false);
+
+                const btnUpsell = document.createElement('button');
+                btnUpsell.className = 'btn-upsell';
+                btnUpsell.title = 'Copier ce message + la proposition commerciale Mobile Fidélité 9,99€';
+                btnUpsell.textContent = '+ 🎁 Fidélité';
+                btnUpsell.onclick = () => copyText(ta, btn, k, used, true);
+
+                btnRow.append(btn, btnUpsell);
 
                 const urls = urlsOf(m.text);
                 const linkBox = document.createElement('div');
@@ -1341,16 +1421,19 @@
             document.getElementById('counter').textContent = list.length + ' trame(s) affichée(s) sur ' + allModels.length + ' au total.';
         }
 
-        function copyText(ta, btn, key, usedEl) {
+        function copyText(ta, btn, key, usedEl, withUpsell) {
             let txt = ta.value;
+            if (withUpsell) {
+                txt = txt + UPSELL_PHRASE;
+            }
             const done = () => {
                 usage[key] = (usage[key] || 0) + 1;
                 LS.set('fp_usage', usage);
                 usedEl.textContent = 'Utilisé ' + usage[key] + '×';
                 const o = btn.textContent;
-                btn.textContent = 'Copié ! ✔';
+                btn.textContent = withUpsell ? 'Copié + 🎁 ! ✔' : 'Copié ! ✔';
                 btn.classList.add('copied');
-                toast('Message copié ✔');
+                toast(withUpsell ? 'Message + Offre Fidélité copiés ✔' : 'Message copié ✔');
                 setTimeout(() => { btn.textContent = o; btn.classList.remove('copied'); }, 1500);
             };
             if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1358,7 +1441,6 @@
             } else { ta.select(); document.execCommand('copy'); done(); }
         }
 
-        // Ajout et export de nouvelles trames
         function openAddModal() { document.getElementById('addModal').classList.add('open'); }
         function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
 
