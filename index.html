@@ -139,7 +139,7 @@
         }
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
             gap: 18px;
             max-width: 1600px;
             margin: 0 auto;
@@ -373,7 +373,8 @@
     <div class="dyn-bar">
         <div class="dyn-group">
             <span>👤 Abonné :</span>
-            <input type="text" id="dynName" class="dyn-input" placeholder="Prénom / M. Martin" style="width:135px" oninput="renderCards()">
+            <input type="text" id="dynName" class="dyn-input" placeholder="Prénom / M. Martin" style="width:135px" oninput="renderSoon()">
+            <label style="font-size:.78rem;font-weight:500;white-space:nowrap" title="Décoché : le Bonjour est ajouté automatiquement par votre outil"><input type="checkbox" id="dynHello" onchange="renderCards()"> + Bonjour</label>
         </div>
         <div class="dyn-group">
             <span>🕒 Salutation :</span>
@@ -396,8 +397,8 @@
         </div>
         <div class="dyn-group">
             <span>📅 Date/RDV :</span>
-            <input type="text" id="dynDate" class="dyn-input" placeholder="Ex: 12/11" style="width:75px" oninput="renderCards()">
-            <input type="text" id="dynHour" class="dyn-input" placeholder="Ex: 14h-16h" style="width:85px" oninput="renderCards()">
+            <input type="text" id="dynDate" class="dyn-input" placeholder="Ex: 12/11" style="width:75px" oninput="renderSoon()">
+            <input type="text" id="dynHour" class="dyn-input" placeholder="Ex: 14h-16h" style="width:85px" oninput="renderSoon()">
         </div>
         <div class="dyn-group">
             <button class="btn-mini reset" onclick="resetSubscriber()" title="Vider les infos de l'abonné entre 2 tickets">🧹 Reset Abonné</button>
@@ -411,7 +412,7 @@
         <select id="categorySelect" class="category-select" onchange="renderCards()">
             <option value="all">📁 Tous les pôles</option>
         </select>
-        <input type="text" id="searchInput" class="search-bar" oninput="renderCards()" placeholder="🔍 Mot-clé ou demande abonné (ex: ODR, RIO, eSIM, FreePlug, 8bit, GAMOT...)" autocomplete="off">
+        <input type="text" id="searchInput" class="search-bar" oninput="renderSoon()" placeholder="🔍 Mot-clé ou demande abonné (ex: ODR, RIO, eSIM, FreePlug, 8bit, GAMOT...)" autocomplete="off">
         <button class="chip" onclick="deepSearch()" title="Chercher cette saisie sur Assistance Free">🌐 Chercher Site Free</button>
         <button id="favOnly" class="chip" onclick="toggleFavOnly()">⭐ Favoris</button>
         <button id="compactBtn" class="chip" onclick="toggleCompact()" title="Réduire la hauteur des cartes pour écran partagé">📐 Vue Compacte</button>
@@ -653,7 +654,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "⭐ [Expert] Optimisation du Wi-Fi (Lenteurs, coupures ou portée)",
                 expert: true,
-                text: `Le débit arrivant jusqu'à votre Freebox Server est optimal, mais votre connexion sans fil (Wi-Fi) semble perturbée par l'environnement de votre logement.\n\nPour stabiliser votre connexion et gagner en vitesse dès maintenant :\n* Positionnement du Server : Placez la Freebox dans un endroit ouvert et surélevé (évitez l'intérieur d'un meuble fermé, le sol, ou la proximité immédiate de la TV et d'un micro-ondes).\n* Application Freebox Connect : Téléchargez l'application officielle pour lancer un diagnostic Wi-Fi de vos appareils et vérifier sur quelle bande de fréquence (2,4 GHz, 5 GHz ou 6 GHz) ils sont connectés.\n* Répéteur Wi-Fi Free : Si votre logement comporte des murs épais ou un étage, vous pouvez commander un Répéteur Wi-Fi Pop/Wi-Fi 7 directement depuis votre Espace Abonné (inclus sur demande selon votre offre).\n\nJe reste à votre disposition si vous souhaitez que nous fassions le point sur la configuration de vos bandes de fréquences.\n\nBonne journée,`
+                text: `Le débit arrivant jusqu'à votre Freebox Server est optimal, mais votre connexion sans fil (Wi-Fi) semble perturbée par l'environnement de votre logement.\n\nPour stabiliser votre connexion et gagner en vitesse dès maintenant :\n* Positionnement du Server : Placez la Freebox dans un endroit ouvert et surélevé (évitez l'intérieur d'un meuble fermé, le sol, ou la proximité immédiate de la TV et d'un micro-ondes).\n* Application Free : Téléchargez l'application officielle pour lancer un diagnostic Wi-Fi de vos appareils et vérifier sur quelle bande de fréquence (2,4 GHz, 5 GHz ou 6 GHz) ils sont connectés.\n* Répéteur Wi-Fi Free : Si votre logement comporte des murs épais ou un étage, vous pouvez commander un Répéteur Wi-Fi Pop/Wi-Fi 7 directement depuis votre Espace Abonné (inclus sur demande selon votre offre).\n\nJe reste à votre disposition si vous souhaitez que nous fassions le point sur la configuration de vos bandes de fréquences.\n\nBonne journée,`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -665,7 +666,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "⭐ [Expert] Passage de la Freebox en Mode Bridge (Routeur externe)",
                 expert: true,
-                text: `Si vous souhaitez utiliser votre propre routeur ou système Wi-Fi Mesh derrière la Freebox, je vous recommande de passer votre Freebox Server en Mode Bridge afin d'éviter les conflits réseau (double NAT).\n\nProcédure d'activation :\n1. Connectez-vous à votre interface de gestion sur http://mafreebox.freebox.fr (ou via l'application mobile Freebox Connect > Plus > Mode de réseau).\n2. Allez dans Paramètres de la Freebox > mode Avancé > Mode réseau.\n3. Remplacez Mode routeur par Mode bridge, validez sur OK, puis redémarrez votre Freebox Server.\n\n⚠️ Points d'attention importants en Mode Bridge :\n* Le Wi-Fi de la Freebox Server (ainsi que des éventuels Répéteurs Free) et sa fonction routeur/DHCP sont désactivés : c'est votre routeur personnel qui doit gérer l'ensemble du réseau.\n* Branchez le port WAN de votre routeur personnel sur l'un des ports Ethernet de la Freebox.\n* Si vous avez un boîtier TV Freebox Player Révolution ou Devialet, il doit rester branché directement sur la Freebox Server pour conserver les flux TV (le Player Pop et l'Apple TV fonctionnent quant à eux très bien directement derrière votre routeur personnel).\n\nJe reste disponible si vous avez besoin de précisions pour le branchement de votre équipement.\n\nBonne journée,`
+                text: `Si vous souhaitez utiliser votre propre routeur ou système Wi-Fi Mesh derrière la Freebox, je vous recommande de passer votre Freebox Server en Mode Bridge afin d'éviter les conflits réseau (double NAT).\n\nProcédure d'activation :\n1. Connectez-vous à votre interface de gestion sur http://mafreebox.freebox.fr (ou via l'application mobile Free > Plus > Mode de réseau).\n2. Allez dans Paramètres de la Freebox > mode Avancé > Mode réseau.\n3. Remplacez Mode routeur par Mode bridge, validez sur OK, puis redémarrez votre Freebox Server.\n\n⚠️ Points d'attention importants en Mode Bridge :\n* Le Wi-Fi de la Freebox Server (ainsi que des éventuels Répéteurs Free) et sa fonction routeur/DHCP sont désactivés : c'est votre routeur personnel qui doit gérer l'ensemble du réseau.\n* Branchez le port WAN de votre routeur personnel sur l'un des ports Ethernet de la Freebox.\n* Si vous avez un boîtier TV Freebox Player Révolution ou Devialet, il doit rester branché directement sur la Freebox Server pour conserver les flux TV (le Player Pop et l'Apple TV fonctionnent quant à eux très bien directement derrière votre routeur personnel).\n\nJe reste disponible si vous avez besoin de précisions pour le branchement de votre équipement.\n\nBonne journée,`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -677,7 +678,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "Contrôle parental Freebox (Profils & pauses planifiées)",
                 expert: false,
-                text: `Le profil (contrôle parental) permet de contrôler l’accès à Internet de différents appareils connectés à votre Freebox, par exemple un smartphone, une tablette ou une console de jeux.\n\nDepuis l’application Freebox Connect (disponible dans l’app Free sur l’App Store et Google Play) :\n1. Créez un profil et associez-y les appareils concernés.\n2. Dans la rubrique Profils, appuyez sur « Détails » du profil, puis « Créer une nouvelle pause ».\n3. Indiquez le nom de la pause, les heures de début et de fin, ainsi que les jours de la semaine concernés, puis validez.\n\nAstuce : pour planifier des pauses pendant les vacances scolaires, sélectionnez votre zone dans le menu « Vacances scolaires » du profil.\n\nVous pouvez également gérer vos profils depuis Freebox OS.\n\nJe reste à votre disposition si vous souhaitez que l’on regarde cela ensemble.\n\nBelle journée à vous 😊`
+                text: `Le profil (contrôle parental) permet de contrôler l’accès à Internet de différents appareils connectés à votre Freebox, par exemple un smartphone, une tablette ou une console de jeux.\n\nDepuis l’application Free (disponible sur l’App Store et Google Play) :\n1. Créez un profil et associez-y les appareils concernés.\n2. Dans la rubrique Profils, appuyez sur « Détails » du profil, puis « Créer une nouvelle pause ».\n3. Indiquez le nom de la pause, les heures de début et de fin, ainsi que les jours de la semaine concernés, puis validez.\n\nAstuce : pour planifier des pauses pendant les vacances scolaires, sélectionnez votre zone dans le menu « Vacances scolaires » du profil.\n\nVous pouvez également gérer vos profils depuis Freebox OS.\n\nJe reste à votre disposition si vous souhaitez que l’on regarde cela ensemble.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -695,7 +696,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "Débit Freebox Ultra (Cartes Wi-Fi & Reboot 15j)",
                 expert: false,
-                text: `Les débits maximums annoncés sont toujours mesurés en câble Ethernet (le Wi-Fi restant sensible aux murs et aux interférences de votre logement) 😊.\n\nVotre Freebox Ultra dispose de 4 cartes Wi-Fi : une bande 2,4 GHz (longue portée mais débit modéré), deux bandes 5 GHz (très haut débit) et une bande 6 GHz (Wi-Fi 7 pour les appareils très récents).\n* Si vos appareils se connectent uniquement sur le 2,4 GHz, votre débit sera limité : vous pouvez séparer vos cartes Wi-Fi via l'application Freebox Connect.\n* En Ethernet, vérifiez que vos câbles permettent bien le Gigabit (1000 Mbit/s) et non 100 Mbit/s.\n* Enfin, je vous conseille de redémarrer électriquement votre Freebox Server tous les 15 jours afin d'appliquer les mises à jour et rafraîchir la mémoire du routeur.\n\nBelle journée à vous 😊`
+                text: `Les débits maximums annoncés sont toujours mesurés en câble Ethernet (le Wi-Fi restant sensible aux murs et aux interférences de votre logement) 😊.\n\nVotre Freebox Ultra dispose de 4 cartes Wi-Fi : une bande 2,4 GHz (longue portée mais débit modéré), deux bandes 5 GHz (très haut débit) et une bande 6 GHz (Wi-Fi 7 pour les appareils très récents).\n* Si vos appareils se connectent uniquement sur le 2,4 GHz, votre débit sera limité : vous pouvez séparer vos cartes Wi-Fi via l'application Free.\n* En Ethernet, vérifiez que vos câbles permettent bien le Gigabit (1000 Mbit/s) et non 100 Mbit/s.\n* Enfin, je vous conseille de redémarrer électriquement votre Freebox Server tous les 15 jours afin d'appliquer les mises à jour et rafraîchir la mémoire du routeur.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -719,7 +720,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "Retrouver le mot de passe Wi-Fi",
                 expert: false,
-                text: `Pour retrouver votre code Wi-Fi, trois solutions s'offrent à vous :\n1. Depuis votre Espace Abonné : Allez dans Ma Freebox > Gestion Freebox > Voir mes identifiants Wi-Fi (ou via l'application mobile Freebox Connect).\n2. Sur l'écran de votre Freebox : Utilisez les flèches en façade pour naviguer jusqu'au menu Wi-Fi et afficher la clé ou le QR Code.\n3. À distance avec moi : Je peux envoyer une demande d'autorisation sur l'écran de votre Freebox ; il vous suffira de la valider en façade pour que je puisse vous communiquer le mot de passe ici 😊.\n\nBonne journée,`
+                text: `Pour retrouver votre code Wi-Fi, trois solutions s'offrent à vous :\n1. Depuis votre Espace Abonné : Allez dans Ma Freebox > Gestion Freebox > Voir mes identifiants Wi-Fi (ou via l'application mobile Free).\n2. Sur l'écran de votre Freebox : Utilisez les flèches en façade pour naviguer jusqu'au menu Wi-Fi et afficher la clé ou le QR Code.\n3. À distance avec moi : Je peux envoyer une demande d'autorisation sur l'écran de votre Freebox ; il vous suffira de la valider en façade pour que je puisse vous communiquer le mot de passe ici 😊.\n\nBonne journée,`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -735,9 +736,9 @@
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
-                title: "Séparer les cartes Wi-Fi (Application Freebox Connect)",
+                title: "Séparer les cartes Wi-Fi (Application Free)",
                 expert: false,
-                text: `Pour séparer vos bandes de fréquences (2,4 GHz et 5 GHz) afin de choisir manuellement sur quel réseau connecter vos appareils :\n1. Ouvrez l'application Freebox Connect sur votre smartphone et appuyez sur Mon Wi-Fi.\n2. En haut à droite, appuyez sur Modifier, puis tout en bas sur Type de configuration Wi-Fi et sélectionnez Séparée.\n3. Cliquez sur l'onglet 5 GHz en haut et renommez ce réseau (ex: Freebox-5G), puis vérifiez que le nom du réseau 2,4 GHz est bien différent.\n4. Cliquez sur Enregistrer les modifications en bas de l'écran.\n\nBelle journée à vous,`
+                text: `Pour séparer vos bandes de fréquences (2,4 GHz et 5 GHz) afin de choisir manuellement sur quel réseau connecter vos appareils :\n1. Ouvrez l'application Free sur votre smartphone et appuyez sur Mon Wi-Fi.\n2. En haut à droite, appuyez sur Modifier, puis tout en bas sur Type de configuration Wi-Fi et sélectionnez Séparée.\n3. Cliquez sur l'onglet 5 GHz en haut et renommez ce réseau (ex: Freebox-5G), puis vérifiez que le nom du réseau 2,4 GHz est bien différent.\n4. Cliquez sur Enregistrer les modifications en bas de l'écran.\n\nBelle journée à vous,`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -755,7 +756,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "Reset Répéteur Wi-Fi (Voyant rouge clignotant / WPA1)",
                 expert: false,
-                text: `Pour réinitialiser et réassocier votre Répéteur Wi-Fi :\n1. Débranchez électriquement le répéteur.\n2. Maintenez le bouton Reset (situé à l'arrière) enfoncé, rebranchez électriquement le répéteur tout en gardant le bouton appuyé pendant 15 secondes, puis relâchez lorsque le voyant devient orange fixe.\n3. Ouvrez l'application Freebox Connect > Accueil > Mes Équipements > Ajouter un équipement > Répéteur, puis scannez le QR Code situé sous le répéteur.\n\nSi le voyant reste rouge clignotant malgré cette manipulation, revenez vers moi 😉.`
+                text: `Pour réinitialiser et réassocier votre Répéteur Wi-Fi :\n1. Débranchez électriquement le répéteur.\n2. Maintenez le bouton Reset (situé à l'arrière) enfoncé, rebranchez électriquement le répéteur tout en gardant le bouton appuyé pendant 15 secondes, puis relâchez lorsque le voyant devient orange fixe.\n3. Ouvrez l'application Free > Accueil > Mes Équipements > Ajouter un équipement > Répéteur, puis scannez le QR Code situé sous le répéteur.\n\nSi le voyant reste rouge clignotant malgré cette manipulation, revenez vers moi 😉.`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -771,7 +772,7 @@
                 cat: "4. 📺 Télévision, Player & Services SVOD",
                 title: "⭐ [Expert] Problème TV (Image figée, erreur réseau, Player Pop)",
                 expert: true,
-                text: `Pour résoudre les saccades ou le message d'erreur sur votre boîtier TV (Freebox Player), voici les manipulations à réaliser dans l'ordre :\n\n1. Redémarrage électrique : Débranchez le câble d'alimentation situé à l'arrière de votre boîtier TV (Player), patientez 15 secondes, puis rebranchez-le.\n2. Vérification de la liaison :\n   * Si votre Player est relié en Wi-Fi : Assurez-vous que le signal est suffisant via l'application Freebox Connect. Si possible, privilégiez une liaison par câble Ethernet (RJ45) direct ou via un Répéteur Wi-Fi.\n   * Si vous utilisez des FreePlugs (CPL) : Vérifiez que le voyant est bien vert sur les deux boîtiers et qu'ils sont branchés directement sur une prise murale (pas sur une multiprise).\n3. Vider le cache de Free TV (sur Player Pop) : Allez dans les Paramètres (roue crantée en haut à droite) > Applications > Voir toutes les applications > Free TV > Vider le cache, puis forcez l'arrêt pour relancer l'application proprement.\n\nTenez-moi informé du résultat après ce redémarrage.\n\nBonne journée,`
+                text: `Pour résoudre les saccades ou le message d'erreur sur votre boîtier TV (Freebox Player), voici les manipulations à réaliser dans l'ordre :\n\n1. Redémarrage électrique : Débranchez le câble d'alimentation situé à l'arrière de votre boîtier TV (Player), patientez 15 secondes, puis rebranchez-le.\n2. Vérification de la liaison :\n   * Si votre Player est relié en Wi-Fi : Assurez-vous que le signal est suffisant via l'application Free. Si possible, privilégiez une liaison par câble Ethernet (RJ45) direct ou via un Répéteur Wi-Fi.\n   * Si vous utilisez des FreePlugs (CPL) : Vérifiez que le voyant est bien vert sur les deux boîtiers et qu'ils sont branchés directement sur une prise murale (pas sur une multiprise).\n3. Vider le cache de Free TV (sur Player Pop) : Allez dans les Paramètres (roue crantée en haut à droite) > Applications > Voir toutes les applications > Free TV > Vider le cache, puis forcez l'arrêt pour relancer l'application proprement.\n\nTenez-moi informé du résultat après ce redémarrage.\n\nBonne journée,`
             },
             {
                 cat: "4. 📺 Télévision, Player & Services SVOD",
@@ -825,7 +826,7 @@
                 cat: "4. 📺 Télévision, Player & Services SVOD",
                 title: "Télécommande de secours & TV sur PC/Mobile (tv.free.fr)",
                 expert: false,
-                text: `En attendant le remplacement de votre matériel TV, voici deux astuces de dépannage immédiat :\n* Télécommande sur Smartphone : Ouvrez l'application Freebox Connect > Accueil > cliquez sur votre Player TV > Activer la télécommande.\n* Regarder la TV sans décodeur : Utilisez l'application mobile Free TV (que vous pouvez caster sur votre TV) ou connectez un ordinateur en HDMI à votre téléviseur en allant sur le site https://tv.free.fr.\n\nBelle journée à vous 😊`
+                text: `En attendant le remplacement de votre matériel TV, voici deux astuces de dépannage immédiat :\n* Télécommande sur Smartphone : Ouvrez l'application Free > Accueil > cliquez sur votre Player TV > Activer la télécommande.\n* Regarder la TV sans décodeur : Utilisez l'application mobile Free TV (que vous pouvez caster sur votre TV) ou connectez un ordinateur en HDMI à votre téléviseur en allant sur le site https://tv.free.fr.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "4. 📺 Télévision, Player & Services SVOD",
@@ -1161,49 +1162,52 @@
         };
 
         const customModels = LS.get('fp_custom_models', []);
+        customModels.forEach(m => m.custom = true);
         let allModels = [...customModels, ...baseModels];
         const favs = new Set(LS.get('fp_favs', []));
         const usage = LS.get('fp_usage', {});
         let favOnly = false;
+        const edited = {};   // textes retouchés à la main (conservés lors des rafraîchissements)
+        function renderSoon() { clearTimeout(renderSoon.t); renderSoon.t = setTimeout(renderCards, 180); }
         const keyOf = m => m.cat + '|' + m.title;
 
+        function timeMode() {
+            const sel = document.getElementById('dynTime');
+            const mode = sel ? sel.value : 'auto';
+            if (mode !== 'auto') return mode;
+            const now = new Date(), h = now.getHours(), d = now.getDay();   // 0 dim, 5 ven, 6 sam
+            if (d === 6 || (d === 5 && h >= 17) || (d === 0 && h < 17)) return 'weekend';
+            if (h >= 17 || h < 5) return 'evening';
+            return 'day';
+        }
+
+        // Formules de fin : journée / soirée / week-end (appelée à l'affichage ET à la copie)
+        function adaptClosing(t) {
+            const m = timeMode();
+            if (m === 'weekend') {
+                return t.replace(/une belle journée/g, 'un bon week-end')
+                        .replace(/Très bonne journée/g, 'Très bon week-end')
+                        .replace(/Excellente journée/g, 'Excellent week-end')
+                        .replace(/\b(Belle|Bonne|belle|bonne) journée/g, 'Bon week-end')
+                        .replace(/(week-end[^\n]*?)☀️/g, '$1🎉');
+            }
+            if (m === 'evening') {
+                return t.replace(/\b(Belle|belle|Bonne|bonne|Excellente|excellente) journée/g, '$1 soirée')
+                        .replace(/(soirée[^\n]*?)☀️/g, '$1🌙');
+            }
+            return t;
+        }
+
         function adaptGreeting(t) {
-            const mode = document.getElementById('dynTime') ? document.getElementById('dynTime').value : 'auto';
-            const name = document.getElementById('dynName') ? document.getElementById('dynName').value.trim() : '';
-            const stepVal = document.getElementById('dynStep') ? document.getElementById('dynStep').value : '';
-            const dateVal = document.getElementById('dynDate') ? document.getElementById('dynDate').value.trim() : '';
-            const hourVal = document.getElementById('dynHour') ? document.getElementById('dynHour').value.trim() : '';
-
-            const hour = new Date().getHours();
-            const isEvening = mode === 'evening' || (mode === 'auto' && (hour >= 17 || hour < 5));
-            const isWeekend = mode === 'weekend';
-
+            const g = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+            const stepVal = g('dynStep'), dateVal = g('dynDate'), hourVal = g('dynHour'), name = g('dynName');
             let out = t;
-
-            if (stepVal) {
-                out = out.replace(/\[2 \/ 3 \/ 4\]/g, stepVal);
-            }
-            if (dateVal) {
-                out = out.replace(/\[Date\]/g, dateVal).replace(/\[Durée\/Date\]/g, dateVal);
-            }
-            if (hourVal) {
-                out = out.replace(/entre \[Heure début\] et \[Heure fin\]/g, 'sur le créneau ' + hourVal)
-                         .replace(/\[Heure\]/g, hourVal);
-            }
-
-            if (isWeekend) {
-                out = out.replace(/\b(Belle|belle|Bonne|bonne|Excellente|excellente) journée/g, 'Bon week-end')
-                         .replace(/☀️/g, '🎉');
-            } else if (isEvening) {
-                out = out.replace(/\b(Belle|belle|Bonne|bonne|Excellente|excellente) journée/g, '$1 soirée')
-                         .replace(/(soirée[^\n]*?)☀️/g, '$1🌙');
-            }
-
-            if (name) {
-                const hello = isEvening ? 'Bonsoir' : 'Bonjour';
-                out = `${hello} ${name},\n\n` + out;
-            }
-
+            if (stepVal) out = out.replace(/\[2 \/ 3 \/ 4\]/g, stepVal);
+            if (dateVal) out = out.replace(/\[Date\]/g, dateVal).replace(/\[Durée\/Date\]/g, dateVal);
+            if (hourVal) out = out.replace(/entre \[Heure début\] et \[Heure fin\]/g, 'sur le créneau ' + hourVal).replace(/\[Heure\]/g, hourVal);
+            out = adaptClosing(out);
+            const hello = document.getElementById('dynHello');
+            if (name && hello && hello.checked) out = (timeMode() === 'evening' ? 'Bonsoir ' : 'Bonjour ') + name + ',\n\n' + out;
             return out;
         }
 
@@ -1212,6 +1216,8 @@
             document.getElementById('dynStep').value = '';
             document.getElementById('dynDate').value = '';
             document.getElementById('dynHour').value = '';
+            const hl = document.getElementById('dynHello'); if (hl) hl.checked = false;
+            Object.keys(edited).forEach(k => delete edited[k]);
             renderCards();
             toast('Infos abonné réinitialisées 🧹');
         }
@@ -1230,13 +1236,12 @@
             ['📱 Espace Abonné Mobile', 'https://mobile.free.fr/account'],
             ['📶 Portail Free Mobile', 'https://mobile.free.fr/'],
             ['🏠 Portail Freebox', 'https://www.free.fr/freebox/'],
-            ['📺 OQEE / Free TV', 'https://oqee.tv/'],
+            ['📺 Free TV', 'https://tv.free.fr'],
             ['🗺️ Carte Fibre FTTH', 'https://www.free.fr/freebox/carte-fibre-optique/'],
             ['📡 Couverture 4G/5G', 'https://mobile.free.fr/couverture/'],
-            ['✉️ Webmail Zimbra', 'https://zimbra.free.fr/'],
+            ['✉️ Webmail Free', 'https://webmail.free.fr'],
             ['🏪 Boutiques & Bornes Free', 'https://www.free.fr/boutiques/'],
-            ['⚙️ Freebox OS (Local)', 'http://mafreebox.freebox.fr/'],
-            ['🏢 Groupe Iliad (Xavier Niel)', 'https://www.iliad.fr/']
+            ['⚙️ Freebox OS (Local)', 'http://mafreebox.freebox.fr/']
         ];
         const urlsOf = t => [...new Set((t.match(/https?:\/\/[^\s)"'`]+/g) || []).map(u => u.replace(/[.,;:!?]+$/, '')))];
 
@@ -1254,6 +1259,12 @@
         }
 
         function deepSearch() {
+            let warned = false;
+            try { warned = !!sessionStorage.getItem('fp_gwarn'); } catch (e) {}
+            if (!warned) {
+                if (!confirm('Cette recherche est envoyée à Google. Ne saisissez aucune donnée personnelle du client (nom, numéro, identifiant). Continuer ?')) return;
+                try { sessionStorage.setItem('fp_gwarn', '1'); } catch (e) {}
+            }
             const q = document.getElementById('searchInput').value.trim() || 'assistance freebox';
             window.open('https://www.google.fr/search?q=site:free.fr+' + encodeURIComponent(q), '_blank');
         }
@@ -1366,7 +1377,7 @@
                 const card = document.createElement('div');
                 card.className = 'card' + (m.expert ? ' expert' : '');
 
-                const adaptedText = adaptGreeting(m.text);
+                const adaptedText = (edited[k] !== undefined) ? edited[k] : adaptGreeting(m.text);
                 const hasUnfilledVar = /\[[^\]]+\]/.test(adaptedText);
 
                 const head = document.createElement('div');
@@ -1401,12 +1412,19 @@
                     LS.set('fp_favs', [...favs]);
                 };
                 rightBox.append(used, star);
+                if (m.custom) {
+                    const del = document.createElement('button');
+                    del.className = 'star'; del.title = 'Supprimer cette trame personnelle'; del.textContent = '🗑️';
+                    del.onclick = () => deleteCustom(k);
+                    rightBox.appendChild(del);
+                }
                 head.append(badge, rightBox);
 
                 const h2 = document.createElement('h2');
                 h2.textContent = m.title;
                 const ta = document.createElement('textarea');
                 ta.value = adaptedText;
+                ta.addEventListener('input', () => { edited[k] = ta.value; });
 
                 const btnRow = document.createElement('div');
                 btnRow.className = 'btn-row';
@@ -1445,10 +1463,16 @@
         }
 
         function copyText(ta, btn, key, usedEl, withUpsell) {
-            let txt = ta.value;
+            let txt = adaptClosing(ta.value);
             if (withUpsell) {
-                txt = txt + UPSELL_PHRASE;
+                const parts = txt.split('\n\n');
+                if (parts.length > 1) {
+                    const last = parts.pop();
+                    txt = parts.join('\n\n') + '\n\n' + UPSELL_PHRASE.trim() + '\n\n' + last;
+                } else { txt = txt + UPSELL_PHRASE; }
             }
+            const leftover = txt.match(/\[[^\]]+\]/);
+            if (leftover && !confirm('Ce message contient encore une variable à compléter (' + leftover[0] + '). Copier quand même ?')) return;
             const done = () => {
                 usage[key] = (usage[key] || 0) + 1;
                 LS.set('fp_usage', usage);
@@ -1474,7 +1498,7 @@
             const text = document.getElementById('newText').value.trim();
             if (!title || !text) return alert('Merci de remplir le titre et le texte de la trame.');
 
-            const newItem = { cat, title: expert && !title.includes('[Expert]') ? '⭐ [Expert] ' + title : title, expert, text };
+            const newItem = { cat, title: expert && !title.includes('[Expert]') ? '⭐ [Expert] ' + title : title, expert, text, custom: true };
             customModels.unshift(newItem);
             LS.set('fp_custom_models', customModels);
             allModels = [...customModels, ...baseModels];
@@ -1484,11 +1508,25 @@
             toast('Nouvelle trame enregistrée ✔');
         }
 
+        function deleteCustom(k) {
+            if (!confirm('Supprimer définitivement cette trame personnelle ?')) return;
+            const i = customModels.findIndex(m => keyOf(m) === k);
+            if (i < 0) return;
+            customModels.splice(i, 1);
+            LS.set('fp_custom_models', customModels);
+            allModels = [...customModels, ...baseModels];
+            searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
+            populateCategories();
+            renderCards();
+            toast('Trame supprimée');
+        }
+
         function exportCustom() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allModels, null, 2));
+            if (!customModels.length) return toast('Aucune trame personnelle à exporter');
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(customModels, null, 2));
             const a = document.createElement('a');
             a.href = dataStr;
-            a.download = "trames-free-proxi-complet.json";
+            a.download = "trames-perso-free-proxi.json";
             a.click();
         }
 
