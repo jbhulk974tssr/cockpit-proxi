@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Proxi – Cockpit Réponses Rapides</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#cc0000">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root {
             --free-red: #cc0000;
@@ -323,6 +327,17 @@
         html[data-theme="sw"] .pole-chip:hover { border-color:#ffe81f; }
         html[data-theme="sw"] .pole-chip.active { background:#3a3306; border-color:#ffe81f; color:#ffe81f; box-shadow:0 0 10px rgba(255,232,31,.4); }
         html[data-theme="sw"] .section-title { color:#ffe81f; border-bottom-color:#4fc3ff; text-shadow:0 0 10px rgba(255,232,31,.35); }
+        .blocks { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; align-items:center; max-width:1380px; margin:0 auto 10px; font-size:.85rem; }
+        .blocks:empty { display:none; }
+        .tools { max-width:1380px; margin:0 auto 12px; text-align:center; font-size:.85rem; }
+        .tools summary { cursor:pointer; font-weight:600; margin-bottom:8px; }
+        .tools .btn-mini { margin:0 4px; display:inline-block; }
+        .var-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+        .var-row input { flex:1; min-width:110px; padding:5px 8px; font-size:.8rem; border:1px solid #f59e0b; border-radius:6px; background:#fffbeb; color:#222; }
+        .badge-ok { background:#dcfce7; color:#15803d; font-size:.7rem; padding:2px 7px; border-radius:4px; font-weight:700; border:1px solid #86efac; }
+        .len { font-size:.7rem; color:#888; } .len.long { color:#d97706; font-weight:700; }
+        .qc-item { padding:6px 0; border-bottom:1px solid #8883; font-size:.88rem; } .qc-item a { cursor:pointer; color:var(--proxi-blue); text-decoration:underline; }
+        html[data-theme="dark"] .badge-ok, html[data-theme="sw"] .badge-ok { background:#14532d; color:#86efac; border-color:#166534; }
     </style>
     <script>try{var t=JSON.parse(localStorage.getItem('fp_theme')||'null')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
@@ -420,13 +435,31 @@
     </div>
 
     <nav class="poles" id="poleBar" aria-label="Pôles"></nav>
-    <div class="hint"><kbd>/</kbd> rechercher · <kbd>Entrée</kbd> copier le 1er résultat · <kbd>Échap</kbd> effacer · Le bouton <b>+ 🎁 Fidélité</b> ajoute automatiquement l'offre mobile 9,99 € avant la formule de fin</div>
+    <div class="hint"><kbd>/</kbd> rechercher · <kbd>Entrée</kbd> copier le 1er résultat · <kbd>1</kbd>–<kbd>9</kbd> copier le n° affiché · <kbd>Échap</kbd> effacer · Le bouton <b>+ 🎁 Fidélité</b> ajoute automatiquement l'offre mobile 9,99 € avant la formule de fin</div>
+
+    <div class="blocks"><b>Blocs :</b>
+        <button class="chip" onclick="copyBlock('ENQUETE')">📋 Enquête</button>
+        <button class="chip" onclick="copyBlock('FIDELITE')">🎁 Fidélité</button>
+        <button class="chip" onclick="copyBlock('FIN')">👋 Formule de fin</button>
+    </div>
+    <div class="blocks" id="recentBar"></div>
+    <details class="tools"><summary>🧰 Outils</summary>
+        <button class="btn-mini" onclick="runChecks()">🔎 Contrôle qualité</button>
+        <button class="btn-mini" onclick="exportStats()">📊 Stats (CSV)</button>
+        <button class="btn-mini" onclick="exportBackup()">💾 Sauvegarde</button>
+        <label class="btn-mini" style="cursor:pointer">📥 Restaurer<input type="file" accept=".json" style="display:none" onchange="restoreBackup(this.files[0])"></label>
+    </details>
 
     <nav class="links" id="officialLinks" aria-label="Liens officiels Free"></nav>
 
     <div id="counter" class="counter"></div>
     <div class="grid" id="cardsContainer"></div>
     <div class="toast" id="toast"></div>
+
+    <div class="modal-backdrop" id="qcModal" onclick="if(event.target===this)this.classList.remove('open')">
+        <div class="modal-box" style="max-width:760px;max-height:85vh;overflow:auto"><h3>🔎 Contrôle qualité</h3><div id="qcBody"></div>
+            <div style="text-align:right"><button class="btn-mini" onclick="document.getElementById('qcModal').classList.remove('open')">Fermer</button></div></div>
+    </div>
 
     <!-- MODAL AJOUT DE NOUVELLE TRAME -->
     <div class="modal-backdrop" id="addModal">
@@ -466,19 +499,19 @@
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Demande incomplète (Suite appel 3244)",
                 expert: false,
-                text: `Vous avez tenté de joindre votre assistance Free Proxi au 3244, mais nous n'avons pas le détail de votre demande.\n\nNotre équipe utilise également cette messagerie écrite pour traiter vos sollicitations beaucoup plus rapidement que par téléphone. Pouvez-vous m'expliquer votre besoin par écrit en répondant à ce message afin que je puisse vous aider au mieux ?\n\nDans l'attente de votre retour,`
+                text: `Vous avez tenté de joindre votre assistance Free Proxi au {{TEL_ABONNES}}, mais nous n'avons pas le détail de votre demande.\n\nNotre équipe utilise également cette messagerie écrite pour traiter vos sollicitations beaucoup plus rapidement que par téléphone. Pouvez-vous m'expliquer votre besoin par écrit en répondant à ce message afin que je puisse vous aider au mieux ?\n\nDans l'attente de votre retour,`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Contact croisé : Depuis FREEBOX pour MOBILE",
                 expert: false,
-                text: `Vous nous contactez actuellement depuis votre dossier Freebox, mais votre demande concerne un forfait Free Mobile.\n\nPour des raisons de sécurité et d'accès à votre dossier, je vous invite à nous écrire directement depuis votre Espace Abonné Free Mobile (https://mobile.free.fr/account) ou à appeler le 3244 (choix n°1) puis à répondre au SMS/e-mail reçu.\n\nEn vous remerciant de votre compréhension, à tout de suite sur votre dossier Free Mobile !`
+                text: `Vous nous contactez actuellement depuis votre dossier Freebox, mais votre demande concerne un forfait Free Mobile.\n\nPour des raisons de sécurité et d'accès à votre dossier, je vous invite à nous écrire directement depuis votre Espace Abonné Free Mobile (https://mobile.free.fr/account) ou à appeler le {{TEL_ABONNES}} (choix n°1) puis à répondre au SMS/e-mail reçu.\n\nEn vous remerciant de votre compréhension, à tout de suite sur votre dossier Free Mobile !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Contact croisé : Depuis MOBILE pour FREEBOX",
                 expert: false,
-                text: `Vous nous contactez actuellement depuis votre ligne Free Mobile, mais votre demande concerne votre abonnement Freebox.\n\nPour pouvoir accéder à vos outils de diagnostic, je vous invite à revenir vers moi depuis votre Espace Abonné Freebox (https://moncompte.free.fr) ou à appeler le 3244 (choix n°2) puis à répondre au SMS/e-mail reçu.\n\nEn vous remerciant de votre compréhension, à tout de suite sur votre dossier Freebox !`
+                text: `Vous nous contactez actuellement depuis votre ligne Free Mobile, mais votre demande concerne votre abonnement Freebox.\n\nPour pouvoir accéder à vos outils de diagnostic, je vous invite à revenir vers moi depuis votre Espace Abonné Freebox (https://moncompte.free.fr) ou à appeler le {{TEL_ABONNES}} (choix n°2) puis à répondre au SMS/e-mail reçu.\n\nEn vous remerciant de votre compréhension, à tout de suite sur votre dossier Freebox !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
@@ -490,13 +523,25 @@
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture Appel Manqué (Sans retour)",
                 expert: false,
-                text: `J'ai tenté de vous joindre par téléphone sans succès et vous ai laissé un message vocal. Sans retour de votre part, je me permets de clôturer temporairement votre demande.\n\nJe reste bien entendu disponible en cas de besoin : notre conversation étant historisée, nous pourrons la reprendre à tout moment là où nous l'avons laissée en répondant simplement à ce message 😊.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nBonne journée à vous !`
+                text: `J'ai tenté de vous joindre par téléphone sans succès et vous ai laissé un message vocal. Sans retour de votre part, je me permets de clôturer temporairement votre demande.\n\nJe reste bien entendu disponible en cas de besoin : notre conversation étant historisée, nous pourrons la reprendre à tout moment là où nous l'avons laissée en répondant simplement à ce message 😊.\n\n{{ENQUETE}}\n\nBonne journée à vous !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Assistance en Langue des Signes Française (Abonnés sourds ou malentendants)",
                 expert: false,
                 text: `Free propose un service d’assistance en Langue des Signes Française (LSF), par vidéo ou par écrit, pour les abonnés sourds ou malentendants. Nos équipes sont disponibles du lundi au vendredi de 8h à 20h.\n\nPour les contacter :\n1. Cliquez sur « Nous contacter », en bas de toutes les pages du site Free (rubrique Aide & Contact).\n2. Sélectionnez l’abonnement concerné : Freebox ou mobile Free.\n3. Dans la rubrique « Par vidéo en langue des signes française », cliquez sur « Nous contacter ».\n4. Saisissez l’identifiant et le mot de passe de votre Espace Abonné.\n5. Choisissez l’assistance LSF par webcam ou par chat.\n\nUne fenêtre s’ouvre et vous êtes mis en relation avec un conseiller. Ce service est exclusivement réservé aux abonnés sourds ou malentendants.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Remerciement pour les informations fournies",
+                expert: false,
+                text: `Je vous remercie pour votre retour et pour avoir pris le temps de tout détailler. C’est parfait : ces informations nous sont très utiles pour le suivi de votre dossier.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Excuses : rendez-vous téléphonique manqué & dossier à relancer",
+                expert: false,
+                text: `Je vous présente mes sincères excuses pour le rendez-vous téléphonique manqué et pour la confusion autour de votre dossier. Après vérification, [Motif : ex. la commande de votre matériel n’a pas été validée correctement]. Je reprends personnellement les choses en main.\n\nPourriez-vous me communiquer [Information demandée : ex. l’adresse MAC de votre équipement] ? Dès votre retour, je m’occupe de la suite.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
@@ -508,7 +553,7 @@
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture Standard",
                 expert: false,
-                text: `Je reste disponible en cas de besoin.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+                text: `Je reste disponible en cas de besoin.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
@@ -520,31 +565,31 @@
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture OK (Services fonctionnels)",
                 expert: false,
-                text: `Je constate que vos services sont à présent pleinement fonctionnels. Je reste disponible en cas de besoin 😊.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+                text: `Je constate que vos services sont à présent pleinement fonctionnels. Je reste disponible en cas de besoin 😊.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture suite SWAP (Nouveau matériel reçu)",
                 expert: false,
-                text: `Je vois que vous avez bien réceptionné votre nouveau matériel et que tout est fonctionnel 😊. Je reste bien sûr disponible en cas de besoin.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+                text: `Je vois que vous avez bien réceptionné votre nouveau matériel et que tout est fonctionnel 😊. Je reste bien sûr disponible en cas de besoin.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture suite Intervention Technicien",
                 expert: false,
-                text: `Je constate que suite à l'intervention de notre technicien, vos services sont à présent pleinement fonctionnels. Je me permets donc de clôturer votre demande d'assistance. Cela ne vous empêche pas de reprendre la discussion à tout moment si vous le souhaitez, nous conservons tout l'historique de nos échanges 😊.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+                text: `Je constate que suite à l'intervention de notre technicien, vos services sont à présent pleinement fonctionnels. Je me permets donc de clôturer votre demande d'assistance. Cela ne vous empêche pas de reprendre la discussion à tout moment si vous le souhaitez, nous conservons tout l'historique de nos échanges 😊.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture suite DERCO (Fin d'incident collectif)",
                 expert: false,
-                text: `Je constate que suite à l'intervention de nos équipes réseau, l'incident collectif qui vous impactait est désormais résolu. N'hésitez pas à me recontacter en cas de besoin 😉.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nTrès bonne journée à vous !`
+                text: `Je constate que suite à l'intervention de nos équipes réseau, l'incident collectif qui vous impactait est désormais résolu. N'hésitez pas à me recontacter en cas de besoin 😉.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous !`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
                 title: "Clôture suite Mise en relation accompagnée (Service concerné)",
                 expert: false,
-                text: `Suite à notre échange, la mise en relation avec notre service [Nom du service] a bien été réalisée avec mon accompagnement. Ce service, le mieux placé pour traiter votre demande, prend désormais votre dossier en charge.\n\nJe clôture donc ma prise en charge de mon côté, mais je reste disponible si vous avez la moindre question.\n\nUn petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐\n\nBelle journée à vous 😊`
+                text: `Suite à notre échange, la mise en relation avec notre service [Nom du service] a bien été réalisée avec mon accompagnement. Ce service, le mieux placé pour traiter votre demande, prend désormais votre dossier en charge.\n\nJe clôture donc ma prise en charge de mon côté, mais je reste disponible si vous avez la moindre question.\n\n{{ENQUETE}}\n\nBelle journée à vous 😊`
             },
 
             // =========================================================================
@@ -618,6 +663,24 @@
             },
             {
                 cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
+                title: "Box allumée depuis longtemps : redémarrage conseillé (Lenteurs / images figées)",
+                expert: false,
+                text: `J’ai bien pris en compte votre message concernant votre connexion et les images qui se figent. En vérifiant votre ligne à distance, je remarque que votre box est allumée en continu depuis [Nombre] jours. Comme un ordinateur ou un smartphone, un équipement qui fonctionne sans aucune pause finit par saturer sa mémoire, ce qui peut provoquer ces lenteurs.\n\nJe vous invite à débrancher électriquement votre Freebox Server, à patienter une dizaine de secondes, puis à la rebrancher. Vous devriez rapidement constater une amélioration.\n\nN’hésitez pas à me dire si c’est mieux après cette manipulation.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
+                title: "Incident général identifié (Ex : Replay TV, écran noir)",
+                expert: false,
+                text: `Je vous rassure tout de suite : le problème ne vient pas de votre matériel. Il s’agit d’un incident général dont nos équipes techniques ont déjà connaissance ([Symptôme : ex. retour au menu, écran noir]). Elles travaillent à sa résolution pour rétablir le service dans les meilleurs délais.\n\nMerci pour votre patience, je reste disponible si besoin.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
+                title: "Ticket GAMOT : dossier transmis (Relance Orange) & dédommagement",
+                expert: false,
+                text: `Je vous informe que votre dossier a bien été transmis à notre service dédié. Nos équipes se rapprochent directement d’Orange, gestionnaire de la ligne cuivre extérieure, afin de faire débloquer la situation au plus vite.\n\nUne fois vos services rétablis, vous pourrez demander un dédommagement pour la période sans internet : je reste disponible pour vous accompagner dans cette démarche.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Ticket ADSL & Escalade Orange (GAMOT)",
                 expert: false,
                 text: `Votre ticket d’incident ADSL est bien ouvert et actuellement en cours de traitement par nos services :\n\n* Vérification chez vous : assurez-vous que le câble téléphonique RJ11 (port DSL) est correctement enfoncé au dos de votre Freebox et sur votre prise murale, puis effectuez un redémarrage électrique de la box.\n* Diagnostic technique : un technicien Free va dans un premier temps réaliser les vérifications et tests nécessaires sur nos équipements réseau et votre ligne.\n* Intervention extérieure (si nécessaire) : si ces tests confirment que le dysfonctionnement se situe sur la boucle locale cuivre gérée par l’opérateur d’infrastructure (Orange), une intervention sera alors mandatée auprès de leurs services (ticket GAMOT).\n\nNous faisons le nécessaire et nous revenons vers vous très prochainement avec des nouvelles précises sur l’évolution de votre dossier.\n\nBelle journée à vous 😊`
@@ -679,6 +742,12 @@
                 title: "Contrôle parental Freebox (Profils & pauses planifiées)",
                 expert: false,
                 text: `Le profil (contrôle parental) permet de contrôler l’accès à Internet de différents appareils connectés à votre Freebox, par exemple un smartphone, une tablette ou une console de jeux.\n\nDepuis l’application Free (disponible sur l’App Store et Google Play) :\n1. Créez un profil et associez-y les appareils concernés.\n2. Dans la rubrique Profils, appuyez sur « Détails » du profil, puis « Créer une nouvelle pause ».\n3. Indiquez le nom de la pause, les heures de début et de fin, ainsi que les jours de la semaine concernés, puis validez.\n\nAstuce : pour planifier des pauses pendant les vacances scolaires, sélectionnez votre zone dans le menu « Vacances scolaires » du profil.\n\nVous pouvez également gérer vos profils depuis Freebox OS.\n\nJe reste à votre disposition si vous souhaitez que l’on regarde cela ensemble.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
+                title: "Machines virtuelles (VM) sur Freebox Ultra : fonction indisponible sur les modèles récents",
+                expert: false,
+                text: `Je comprends tout à fait votre besoin, notamment pour vos projets de domotique.\n\nPour vous répondre directement : les Freebox Ultra récentes ne prennent plus en charge les machines virtuelles, suite à l’évolution du marché des composants. Si cette fonction est indispensable pour votre usage, dites-le-moi et je regarde les possibilités avec vous.\n\nIl existe par ailleurs des alternatives qui vous éviteront de lier votre domotique à votre box : un Raspberry Pi, un mini-PC dédié (type Proxmox) ou un NAS. Je reste disponible si vous avez besoin d’aide pour configurer une IP fixe ou ouvrir des ports vers votre futur serveur.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -860,7 +929,7 @@
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
                 title: "⭐ [Expert] Configuration eSIM & Vol / Perte de carte SIM",
                 expert: true,
-                text: `Voici la marche à suivre selon votre besoin concernant votre carte SIM Free Mobile :\n\nOption A : Passer sur une eSIM (carte SIM virtuelle)\n1. Depuis votre Espace Abonné Mobile > Mon Compte > Ma carte SIM, cliquez sur Commander une nouvelle SIM et sélectionnez eSIM.\n2. Une fois la commande validée, flashez le QR Code affiché à l'écran avec l'appareil photo de votre téléphone (connecté en Wi-Fi) et saisissez le code de confirmation. (L'activation d'une eSIM désactive automatiquement votre ancienne carte SIM physique).\n\nOption B : En cas de perte ou de vol de votre téléphone\n1. Bloquez immédiatement votre ligne : Connectez-vous à votre Espace Abonné Mobile > Mon Compte > Ma carte SIM > cliquez sur Déclarer ma carte SIM perdue ou volée (vous pouvez demander l'expédition d'une nouvelle SIM physique au même endroit ou la retirer sur une Borne Free : https://www.free.fr/boutiques/).\n2. Obtenez votre numéro IMEI (pour le dépôt de plainte) : Vous le trouverez sur votre facture d'achat ou sur la boîte d'origine du téléphone. Dès que vous nous transmettez le récépissé de dépôt de plainte comportant cet IMEI, nous inscrivons le téléphone sur la liste noire nationale.\n\nJe reste à votre entière disposition pour vous accompagner dans cette démarche.\n\nBonne journée,`
+                text: `Voici la marche à suivre selon votre besoin concernant votre carte SIM Free Mobile :\n\nOption A : Passer sur une eSIM (carte SIM virtuelle)\n1. Depuis votre Espace Abonné Mobile > Mon compte > Mon offre, cliquez sur Commander une nouvelle SIM ou eSIM et sélectionnez eSIM.\n2. Une fois la commande validée, flashez le QR Code affiché à l'écran avec l'appareil photo de votre téléphone (connecté en Wi-Fi) et saisissez le code de confirmation. (L'activation d'une eSIM désactive automatiquement votre ancienne carte SIM physique).\n\nOption B : En cas de perte ou de vol de votre téléphone\n1. Bloquez immédiatement votre ligne : Connectez-vous à votre Espace Abonné Mobile > Mon Compte > Ma carte SIM > cliquez sur Déclarer ma carte SIM perdue ou volée (vous pouvez demander l'expédition d'une nouvelle SIM physique au même endroit ou la retirer sur une Borne Free : https://www.free.fr/boutiques/).\n2. Obtenez votre numéro IMEI (pour le dépôt de plainte) : Vous le trouverez sur votre facture d'achat ou sur la boîte d'origine du téléphone. Dès que vous nous transmettez le récépissé de dépôt de plainte comportant cet IMEI, nous inscrivons le téléphone sur la liste noire nationale.\n\nJe reste à votre entière disposition pour vous accompagner dans cette démarche.\n\nBonne journée,`
             },
             {
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
@@ -873,6 +942,18 @@
                 title: "Activation 5G+ (5G SA) & Pas de 5G sur un téléphone compatible",
                 expert: false,
                 text: `Pour profiter de la 5G+ (aussi appelée 5G SA, un réseau 5G complet et indépendant de la 4G), voici les vérifications à effectuer :\n\n1. Vérifiez que votre téléphone est compatible 5G, que l’option est activée dans ses réglages et que sa dernière mise à jour logicielle est installée.\n2. Vérifiez que vous êtes dans une zone couverte par le réseau 5G (3,5 GHz) de Free, grâce à la carte de couverture.\n3. Depuis votre Espace Abonné Mobile, rubrique Mes options, activez gratuitement la 5G+ (ou 5G SA).\n4. Après quelques minutes, activez puis désactivez le mode Avion de votre téléphone, ou redémarrez-le.\n\nSelon votre téléphone :\n* iPhone compatible (à partir de l’iPhone 15) : Réglages > Données cellulaires > Options > Voix et données, sélectionnez 5G Auto puis activez 5G SA et Voix sur 5G Standalone.\n* Samsung et Google Pixel : aucune action supplémentaire, la bascule vers la 5G+ est automatique.\n* Autres modèles Android : activez manuellement la 5G+ depuis les paramètres réseau.\n\nSi votre téléphone est Dual-SIM, assurez-vous d’avoir inséré la carte SIM dans l’emplacement qui prend en charge la 5G (généralement le tiroir SIM 1).\n\nSi vous ne captez toujours pas la 5G après ces étapes, dites-le-moi et nous regarderons cela ensemble.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Hors forfait : appel vers un mobile à l’étranger depuis la France",
+                expert: false,
+                text: `Je comprends votre interrogation. Depuis la France métropolitaine, votre forfait ({{NOM_5G}} ou Free Max) inclut les appels illimités vers les fixes de 100 destinations, ainsi que vers les mobiles de France, des États-Unis, du Canada, de Chine et des DOM.\n\nLe numéro que vous avez composé ([Pays]) est un numéro de mobile : les appels vers les mobiles des autres pays n’étant pas inclus depuis la France, ils ont généré du hors-forfait.\n\nPour la suite, vous pouvez privilégier les numéros fixes ou les applications d’appel par internet (WhatsApp, FaceTime…) en Wi-Fi.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
+                title: "Commander une nouvelle SIM ou eSIM (Espace Abonné & Bornes Free)",
+                expert: false,
+                text: `Voici comment commander une nouvelle SIM ou eSIM.\n\nDepuis votre Espace Abonné :\n1. Connectez-vous à l’Espace Abonné Mobile (https://mobile.free.fr/account/) de votre ligne principale avec vos identifiants, puis rendez-vous à la rubrique Mon compte.\n2. Cliquez sur Mon offre, puis Commander une nouvelle SIM ou eSIM.\n3. Choisissez le format : carte SIM (physique, triple découpe compatible avec tous les téléphones) ou eSIM.\n4. Confirmez en cliquant sur Valider ma demande de SIM. Des frais de 10 € seront ajoutés à votre prochaine facture mobile Free.\n5. À réception de votre carte SIM par courrier, activez-la pour bénéficier de vos services. Si vous avez choisi une eSIM, vous pouvez la télécharger et l’activer instantanément.\n\nDepuis nos bornes Free (carte SIM uniquement) :\nRenouvelez et retirez votre carte SIM dans une boutique équipée d’une borne Free (https://www.free.fr/boutiques/). Un code de confirmation est envoyé par SMS sur votre numéro de ligne actuel pour valider votre demande ; dès confirmation, la nouvelle carte SIM est activée automatiquement.\n\nEn cas de vol, perte ou dysfonctionnement, rendez-vous directement dans une boutique Free avec vos papiers d’identité pour bénéficier d’un accompagnement.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
@@ -908,7 +989,7 @@
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
                 title: "Portabilité en cours & Récupération ID Mobile (555)",
                 expert: false,
-                text: `* Portabilité : Je vous rassure, la portabilité de votre numéro est en cours et prendra effet le [Date] après [Heure] 😊. Continuez d'utiliser la SIM de votre ancien opérateur jusque-là, puis activez votre SIM Free dans votre Espace Abonné.\n* Identifiant oublié : Si vous avez égaré votre identifiant Free Mobile à 8 chiffres, appelez gratuitement le 555 depuis votre ligne Free pour le recevoir immédiatement par SMS.\n\nBelle journée à vous,`
+                text: `* Portabilité : Je vous rassure, la portabilité de votre numéro est en cours et prendra effet le [Date] après [Heure] 😊. Continuez d'utiliser la SIM de votre ancien opérateur jusque-là, puis activez votre SIM Free dans votre Espace Abonné.\n* Identifiant oublié : Si vous avez égaré votre identifiant Free Mobile à 8 chiffres, appelez gratuitement le {{TEL_ID}} depuis votre ligne Free pour le recevoir immédiatement par SMS.\n\nBelle journée à vous,`
             },
             {
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
@@ -926,7 +1007,7 @@
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
                 title: "Voyage à l'étranger (Roaming 35 Go, Option Forfait Bloqué & Bateau/Avion)",
                 expert: false,
-                text: `Depuis votre destination ([Pays]), votre Forfait Free 5G+ inclut 35 Go/mois d'Internet mobile (détails des tarifs par pays sur : https://mobile.free.fr/communications-a-l-etranger).\n* Si votre destination inclut la voix : Vos appels, SMS et MMS sont illimités vers la France et localement.\n* Si votre destination n'inclut que la data (35 Go) : Les appels et SMS classiques étant hors-forfait, privilégiez les applications de messagerie (WhatsApp, Messenger, FaceTime...).\n\n⚠️ Vérifications indispensables :\n1. Avant le départ : Vérifiez dans votre Espace Abonné Mobile que l'option "Forfait Bloqué" est bien DÉSACTIVÉE (sinon l'itinérance à l'étranger est bloquée).\n2. Sur place : Activez les "Données en itinérance" dans les réglages du téléphone (et redémarrez l'appareil).\n3. En avion ou en bateau : Coupez vos données mobiles ou restez en mode avion pour ne pas borner sur les réseaux satellites/maritimes facturés hors-forfait.\n\nBon voyage ! 😊`
+                text: `Depuis votre destination ([Pays]), votre {{NOM_5G}} inclut 35 Go/mois d'Internet mobile (détails des tarifs par pays sur : https://mobile.free.fr/communications-a-l-etranger).\n* Si votre destination inclut la voix : Vos appels, SMS et MMS sont illimités vers la France et localement.\n* Si votre destination n'inclut que la data (35 Go) : Les appels et SMS classiques étant hors-forfait, privilégiez les applications de messagerie (WhatsApp, Messenger, FaceTime...).\n\n⚠️ Vérifications indispensables :\n1. Avant le départ : Vérifiez dans votre Espace Abonné Mobile que l'option "Forfait Bloqué" est bien DÉSACTIVÉE (sinon l'itinérance à l'étranger est bloquée).\n2. Sur place : Activez les "Données en itinérance" dans les réglages du téléphone (et redémarrez l'appareil).\n3. En avion ou en bateau : Coupez vos données mobiles ou restez en mode avion pour ne pas borner sur les réseaux satellites/maritimes facturés hors-forfait.\n\nBon voyage ! 😊`
             },
 
             // =========================================================================
@@ -942,25 +1023,49 @@
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "⭐ [Expert] Rattachement Forfait Mobile & Avantage Freebox (Free Family)",
                 expert: true,
-                text: `En tant qu'abonné Freebox, vous pouvez bénéficier de tarifs préférentiels sur vos forfaits Free Mobile (jusqu'à 4 forfaits mobiles rattachés avec l'avantage Free Family, et la 5G/4G illimitée sur le Forfait Free 5G+).\n\n* Pour associer votre forfait mobile à votre Freebox : Connectez-vous à votre Espace Abonné Mobile (https://mobile.free.fr/account/) > Mon Compte > Mon avantage Freebox > saisissez vos identifiants Freebox (fbx...).\n* Pour rattacher une ligne secondaire existante : Dans l'Espace Abonné de la ligne principale > Gérer mes lignes > Mes autres lignes > saisissez les identifiants de la ligne secondaire et validez le code SMS.\n* Pour détacher ou changer de ligne principale : Vous devez d'abord dissocier la Freebox puis détacher les lignes. Attention : un délai de carence de 30 jours s'applique avant de pouvoir rattacher à nouveau les lignes à la Freebox.\n\nBonne journée,`
+                text: `En tant qu'abonné Freebox, vous pouvez bénéficier de tarifs préférentiels sur vos forfaits Free Mobile (jusqu'à 4 forfaits mobiles rattachés avec l'avantage Free Family, et la 5G/4G illimitée sur le {{NOM_5G}}).\n\n* Pour associer votre forfait mobile à votre Freebox : Connectez-vous à votre Espace Abonné Mobile (https://mobile.free.fr/account/) > Mon Compte > Mon avantage Freebox > saisissez vos identifiants Freebox (fbx...).\n* Pour rattacher une ligne secondaire existante : Dans l'Espace Abonné de la ligne principale > Gérer mes lignes > Mes autres lignes > saisissez les identifiants de la ligne secondaire et validez le code SMS.\n* Pour détacher ou changer de ligne principale : Vous devez d'abord dissocier la Freebox puis détacher les lignes. Attention : un délai de carence de 30 jours s'applique avant de pouvoir rattacher à nouveau les lignes à la Freebox.\n\nBonne journée,`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Tarif forfait mobile après passage sur Freebox Pop (Avantage Pop & ligne supplémentaire)",
                 expert: false,
-                text: `Je comprends votre interrogation concernant le tarif de votre forfait mobile suite à votre passage sur une offre Freebox Pop.\n\nLe tarif de votre forfait mobile dépend de votre formule Freebox et de son origine (nouvel abonnement ou migration depuis un ancien abonnement, comme l’offre Pop Fidélité). Voici ce qu’il faut retenir :\n\n* Si votre ligne mobile principale est déjà rattachée à votre offre, elle bénéficie de la réduction permanente de votre formule, par exemple le Forfait Free 5G+ à 15,99 € / mois (au lieu de 19,99 € / mois) avec data illimitée. Le tarif de 9,99 € / mois ne peut pas être appliqué sur une ligne mobile existante.\n* Si vous souscrivez une nouvelle ligne mobile supplémentaire (pour un proche par exemple), celle-ci peut profiter de l’avantage Pop à 9,99 € / mois pendant un an, puis 15,99 € / mois par la suite.\n\nVous pouvez retrouver l’ensemble des conditions et détails tarifaires sur nos pages officielles :\n\n* Fiches d’information et tarifs Freebox :\nhttps://adsl.free.fr/cgv/fiches-informations-standardisees.html\n* Fiches d’information et tarifs Mobile :\nhttps://mobile.free.fr/fiches-informations-standardisees.html\n\nJe reste à votre disposition si vous souhaitez faire le point sur vos lignes ou ajouter un forfait secondaire.\n\nBelle journée à vous 😊`
+                text: `Je comprends votre interrogation concernant le tarif de votre forfait mobile suite à votre passage sur une offre Freebox Pop.\n\nLe tarif de votre forfait mobile dépend de votre formule Freebox et de son origine (nouvel abonnement ou migration depuis un ancien abonnement, comme l’offre Pop Fidélité). Voici ce qu’il faut retenir :\n\n* Si votre ligne mobile principale est déjà rattachée à votre offre, elle bénéficie de la réduction permanente de votre formule, par exemple le {{NOM_5G}} à 15,99 € / mois (au lieu de 19,99 € / mois) avec data illimitée. Le tarif de 9,99 € / mois ne peut pas être appliqué sur une ligne mobile existante.\n* Si vous souscrivez une nouvelle ligne mobile supplémentaire (pour un proche par exemple), celle-ci peut profiter de l’avantage Pop à 9,99 € / mois pendant un an, puis 15,99 € / mois par la suite.\n\nVous pouvez retrouver l’ensemble des conditions et détails tarifaires sur nos pages officielles :\n\n* Fiches d’information et tarifs Freebox :\nhttps://adsl.free.fr/cgv/fiches-informations-standardisees.html\n* Fiches d’information et tarifs Mobile :\nhttps://mobile.free.fr/fiches-informations-standardisees.html\n\nJe reste à votre disposition si vous souhaitez faire le point sur vos lignes ou ajouter un forfait secondaire.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Changement de forfait mobile (Forfait 2€ / Free 5G+ / Free Max)",
                 expert: false,
-                text: `Vous pouvez changer de forfait en autonomie depuis votre Espace Abonné Mobile ou l’app Free : Mon compte > Mon offre > Changer de forfait, puis validez en cliquant sur Continuer.\n\nRappel des tarifs mensuels :\n* Forfait 2€ : 2 €/mois.\n* Forfait Free 5G+ : 19,99 €/mois (15,99 €/mois ou 9,99 €/mois selon la formule Freebox à laquelle il est rattaché).\n* Forfait Free Max : 29,99 €/mois (19,99 €/mois s’il est rattaché à une Freebox).\n\n* Du Forfait 2€ vers le Forfait Free 5G+ (ou Free Max) : le changement est effectif sous 24h et modifie votre date de facturation (par exemple, un passage le 20 prend effet le 21, qui devient votre nouvelle date de facturation). La première facture comprend les jours utilisés sur l’ancien forfait ainsi que le mois d’avance du nouveau. Si du hors forfait a été réalisé avant la remise à zéro, une dernière facture du Forfait 2€ est émise à l’ancienne date anniversaire. Pensez à redémarrer votre téléphone ensuite pour profiter de tous les services compatibles.\n* Du Forfait Free 5G+ ou Free Max vers le Forfait 2€ : possible après trois mois complets et réglés. L’opération est facturée 10€ sur la facture du mois en cours et a lieu à la date de facturation.\n* Du Forfait Free Max vers le Forfait Free 5G+ : opération facturée 10€, à la date de facturation.\n\nBelle journée à vous 😊`
+                text: `Vous pouvez changer de forfait en autonomie depuis votre Espace Abonné Mobile ou l’app Free : Mon compte > Mon offre > Changer de forfait, puis validez en cliquant sur Continuer.\n\nRappel des tarifs mensuels :\n* Forfait 2€ : 2 €/mois.\n* {{NOM_5G}} : 19,99 €/mois (15,99 €/mois ou 9,99 €/mois selon la formule Freebox à laquelle il est rattaché).\n* Forfait Free Max : 29,99 €/mois (19,99 €/mois s’il est rattaché à une Freebox).\n\n* Du Forfait 2€ vers le {{NOM_5G}} (ou Free Max) : le changement est effectif sous 24h et modifie votre date de facturation (par exemple, un passage le 20 prend effet le 21, qui devient votre nouvelle date de facturation). La première facture comprend les jours utilisés sur l’ancien forfait ainsi que le mois d’avance du nouveau. Si du hors forfait a été réalisé avant la remise à zéro, une dernière facture du Forfait 2€ est émise à l’ancienne date anniversaire. Pensez à redémarrer votre téléphone ensuite pour profiter de tous les services compatibles.\n* Du {{NOM_5G}} ou Free Max vers le Forfait 2€ : possible après trois mois complets et réglés. L’opération est facturée 10€ sur la facture du mois en cours et a lieu à la date de facturation.\n* Du Forfait Free Max vers le {{NOM_5G}} : opération facturée 10€, à la date de facturation.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Modification du nom ou du titulaire d’un abonnement mobile (Pièces à fournir)",
                 expert: false,
                 text: `Pour modifier le nom, le titulaire ou l’état civil d’un abonnement Free Mobile, une demande accompagnée de justificatifs est nécessaire selon votre situation :\n\n* Changement de nom (mariage/divorce, pacs/dépacs) : lettre explicative mentionnant les identifiants de l’abonnement, accompagnée du justificatif d’état civil correspondant.\n* Changement de titulaire suite à un décès : acte de décès ou certificat d’hérédité (ou acte notarié), RIB au nom du nouveau titulaire et copie de sa pièce d’identité.\n* Société ou association : lettre explicative avec les identifiants de l’abonnement et extrait Kbis (société), copie JORF ou attestation préfectorale (association), ou extrait d’immatriculation au répertoire des métiers (artisan).\n\nAvant l’envoi des documents, pensez à mettre à jour vos coordonnées bancaires, votre adresse postale, votre e-mail et votre numéro de mobile de contact depuis votre Espace Abonné Mobile.\n\nÀ noter : si le compte principal est rattaché à un abonnement Freebox, la mise à jour du nom ne s’applique qu’à l’abonnement mobile.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Raccordement Fibre : explication de l’intervention (E-mail / SMS reçu)",
+                expert: false,
+                text: `Je vous rassure, l’e-mail ou le SMS reçu correspond à une procédure tout à fait classique. Le motif de cette intervention est le raccordement de votre logement à la Fibre optique : notre technicien se déplace pour tirer le câble depuis la rue, installer la prise murale (PTO) et effectuer les branchements de votre box.\n\nIl vous suffit de cliquer sur le lien reçu pour planifier ce rendez-vous.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Déménagement en cours de traitement (Délai & rendez-vous technicien)",
+                expert: false,
+                text: `Il est normal de ne pas avoir reçu de retour immédiat : votre demande de déménagement est bien en cours de traitement. Une vérification de la faisabilité technique à votre nouvelle adresse est nécessaire.\n\nVous recevrez prochainement un e-mail pour planifier, si besoin, le rendez-vous avec un technicien. Délai estimé : [Délai].\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Déménagement : nouveaux identifiants, anciennes factures & options",
+                expert: false,
+                text: `C’est une situation normale : lors d’un déménagement, de nouveaux identifiants Freebox vous sont attribués pour vous connecter à votre nouvel Espace Abonné Freebox. Vos anciennes factures restent consultables depuis l’ancien Espace Abonné (je viens de vous renvoyer votre ancien identifiant).\n\nConcernant vos options (chaînes, packs TV, Multi-TV…), elles sont désactivées avec l’ancien compte : il vous suffit de les souscrire à nouveau depuis votre nouvel Espace Abonné, une fois vos services activés à la nouvelle adresse. Si vous avez un abonnement CANAL+, pensez aussi à le transférer sur votre nouveau compte depuis la rubrique TV.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Modification validée sur la Freebox uniquement (Espaces Fixe et Mobile séparés)",
+                expert: false,
+                text: `La modification demandée a bien été prise en compte. Cependant, comme les espaces Fixe et Mobile sont séparés, elle a été faite uniquement sur votre abonnement Freebox.\n\nIl faudra faire la même manipulation depuis votre Espace Abonné Mobile (https://mobile.free.fr/account/) pour que tout soit à jour.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
@@ -984,7 +1089,7 @@
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Présentation des Offres Freebox (Ultra, Essentiel, Pop, Pop S) & Migrations",
                 expert: false,
-                text: `Voici le détail de nos offres Freebox actuelles (disponibles dans Espace Abonné > Mon abonnement > Changer mon offre) :\n* Freebox Ultra : Fibre jusqu'à 8 Gbit/s symétriques, Wi-Fi 7 Quad-band, Player TV 4K (+ de 340 chaînes), CANAL+ La Chaîne en Live, TV by Canal, Netflix, Disney+ et Amazon Prime inclus.\n* Freebox Ultra Essentiel : Toute la puissance de la Freebox Ultra (8 Gbit/s, Wi-Fi 7 et Free TV), sans les plateformes de streaming tierces incluses, à un tarif plus avantageux.\n* Freebox Pop : Fibre jusqu'à 5 Gbit/s partagés, Wi-Fi 6/7, Player TV Pop Android 4K (+ de 220 chaînes) et 1er Forfait Free 5G+ à 9,99 €/mois.\n* Freebox Pop S : Offre 100 % Internet (Fibre 5 Gbit/s et Wi-Fi 7), sans boîtier TV.\n\n(À noter : il n'est pas possible de migrer vers une offre inférieure ni de la Pop vers la Pop S sans résilier, et le tarif promotionnel 1ère année est réservé aux nouvelles souscriptions).\n\nBelle journée à vous 😊`
+                text: `Voici le détail de nos offres Freebox actuelles (disponibles dans Espace Abonné > Mon abonnement > Changer mon offre) :\n* Freebox Ultra : Fibre jusqu'à 8 Gbit/s symétriques, Wi-Fi 7 Quad-band, Player TV 4K (+ de 340 chaînes), CANAL+ La Chaîne en Live, TV by Canal, Netflix, Disney+ et Amazon Prime inclus.\n* Freebox Ultra Essentiel : Toute la puissance de la Freebox Ultra (8 Gbit/s, Wi-Fi 7 et Free TV), sans les plateformes de streaming tierces incluses, à un tarif plus avantageux.\n* Freebox Pop : Fibre jusqu'à 5 Gbit/s partagés, Wi-Fi 6/7, Player TV Pop Android 4K (+ de 220 chaînes) et 1er {{NOM_5G}} à 9,99 €/mois.\n* Freebox Pop S : Offre 100 % Internet (Fibre 5 Gbit/s et Wi-Fi 7), sans boîtier TV.\n\n(À noter : il n'est pas possible de migrer vers une offre inférieure ni de la Pop vers la Pop S sans résilier, et le tarif promotionnel 1ère année est réservé aux nouvelles souscriptions).\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
@@ -996,19 +1101,19 @@
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Proposition commerciale Mobile : Offre fidélité (Phrase à ajouter, version complète)",
                 expert: false,
-                text: `Pour vous remercier de votre fidélité, une belle offre mobile vous attend 🎁 Avec votre Freebox, profitez d’un forfait en tout illimité à partir de 9,99 €/mois la première année, puis 15,99 €/mois. Si cela vous intéresse, répondez simplement à ce message et je m’occupe de tout 😊`
+                text: `Pour vous remercier de votre fidélité, une belle offre mobile vous attend 🎁 Avec votre Freebox, profitez d’un forfait en tout illimité à partir de {{PRIX_FIDELITE}} €/mois la première année, puis {{PRIX_FIDELITE_APRES}} €/mois. Si cela vous intéresse, répondez simplement à ce message et je m’occupe de tout 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Proposition commerciale Mobile : Offre fidélité (Phrase à ajouter, version courte)",
                 expert: false,
-                text: `Petit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de 9,99 €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`
+                text: `Petit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de {{PRIX_FIDELITE}} €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Confirmations Ventes Mobile (Free 5G+, Forfait 2€, Booster 1 Go)",
                 expert: false,
-                text: `Suite à notre échange téléphonique, je vous confirme la validation de votre offre mobile sans engagement :\n* Forfait Free 5G+ : Appels/SMS/MMS illimités en France métropolitaine, Internet 4G/5G illimité et 35 Go/mois à l'étranger (proposé à 9,99 €/mois pendant 1 an puis 15,99 €/mois avec l'avantage Freebox Pop).\n* Forfait 2 € + Booster 1 Go (à 0 €/mois) : Vous bénéficiez désormais des appels illimités (au lieu de 2h) et d'une enveloppe de 1 Go d'Internet en 4G/5G (0,05 €/Mo au-delà) sans surcoût sur votre abonnement ! (Si vous n'avez pas le Booster et seulement 50 Mo, pensez à désactiver vos données mobiles pour éviter tout hors-forfait).\n\nEn cas de migration de forfait, le changement est effectif sous 24h : il vous suffira d'éteindre et rallumer votre téléphone dès demain.\n\nMerci de votre confiance !`
+                text: `Suite à notre échange téléphonique, je vous confirme la validation de votre offre mobile sans engagement :\n* {{NOM_5G}} : Appels/SMS/MMS illimités en France métropolitaine, Internet 4G/5G illimité et 35 Go/mois à l'étranger (proposé à 9,99 €/mois pendant 1 an puis 15,99 €/mois avec l'avantage Freebox Pop).\n* Forfait 2 € + Booster 1 Go (à 0 €/mois) : Vous bénéficiez désormais des appels illimités (au lieu de 2h) et d'une enveloppe de 1 Go d'Internet en 4G/5G (0,05 €/Mo au-delà) sans surcoût sur votre abonnement ! (Si vous n'avez pas le Booster et seulement 50 Mo, pensez à désactiver vos données mobiles pour éviter tout hors-forfait).\n\nEn cas de migration de forfait, le changement est effectif sous 24h : il vous suffira d'éteindre et rallumer votre téléphone dès demain.\n\nMerci de votre confiance !`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
@@ -1060,7 +1165,7 @@
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "Frais de pénalité sur facture (Retard de paiement)",
                 expert: false,
-                text: `Suite à votre demande, nous vous confirmons que les frais de pénalité constatés sur votre facture correspondent à un retard de paiement.\n\nConformément à nos conditions générales d’abonnement :\n\nPour les abonnés au Forfait 2€, une pénalité d’un euro par jour de retard est appliquée, dans la limite de 7,50€ par facture.\n\nPour les abonnés au Forfait Free 5G+, une pénalité forfaitaire de 10€ est appliquée par facture en cas de retard de règlement.\n\nCes frais sont automatiquement calculés et ajoutés lors de l’émission de la facture suivante si un paiement n’a pas été effectué dans les délais impartis.\n\nNous restons disponibles pour toute autre information ou assistance complémentaire.\n\nBelle journée à vous 😊`
+                text: `Suite à votre demande, nous vous confirmons que les frais de pénalité constatés sur votre facture correspondent à un retard de paiement.\n\nConformément à nos conditions générales d’abonnement :\n\nPour les abonnés au Forfait 2€, une pénalité d’un euro par jour de retard est appliquée, dans la limite de 7,50€ par facture.\n\nPour les abonnés au {{NOM_5G}}, une pénalité forfaitaire de 10€ est appliquée par facture en cas de retard de règlement.\n\nCes frais sont automatiquement calculés et ajoutés lors de l’émission de la facture suivante si un paiement n’a pas été effectué dans les délais impartis.\n\nNous restons disponibles pour toute autre information ou assistance complémentaire.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1082,6 +1187,18 @@
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Échange de matériel : informations à me transmettre (Adresse MAC & numéro de série)",
+                expert: false,
+                text: `Au vu des symptômes que vous décrivez et de l’ancienneté de votre matériel, un échange de votre boîtier semble être la solution la plus adaptée.\n\nPour que je puisse valider cet échange dans votre dossier et vous envoyer un nouveau boîtier, j’ai besoin des informations inscrites sur l’étiquette située sous (ou à l’arrière) de votre équipement actuel :\n* L’adresse MAC (suite de lettres et de chiffres)\n* Les 6 derniers caractères du numéro de série (S/N, écrit en petits caractères)\n\nDès que vous m’aurez communiqué ces éléments, je déclenche la procédure d’échange.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Portabilité du numéro : résiliation automatique de l’ancien contrat (Ex : Orange / France Télécom)",
+                expert: false,
+                text: `Suite à votre demande de portabilité de votre numéro, je vous confirme que la résiliation de votre ancien contrat se fait automatiquement : c’est Free qui se charge des démarches auprès de votre ancien opérateur. Vous n’avez aucun courrier à envoyer, et surtout ne résiliez pas vous-même.\n\nLa résiliation prend effet en même temps que le transfert effectif de votre numéro : la facturation chez votre ancien opérateur s’arrêtera donc une fois votre nouvelle ligne Free active.\n\nÀ noter : d’éventuels frais de résiliation restent dus à votre ancien opérateur (jusqu’à 100 € peuvent vous être remboursés, dites-le-moi et je vous explique la démarche), et le matériel prêté par votre ancien opérateur (box, décodeur) doit lui être restitué.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "⭐ [Expert] Échange de matériel (SWAP) : Consignes QR Code, SFP & Disque Dur",
                 expert: true,
                 text: `Votre échange de matériel est validé ! Le colis sera livré sous 24h à 72h via Chronopost au point relais [Nom et Adresse du Point Relais].\n\nAfin que l'échange se déroule sans encombre dès réception du SMS de disponibilité :\n1. ⚠️ TRÈS IMPORTANT avant d'emballer votre ancienne box :\n   * Retirez impérativement le module Fibre amovible (SFP) inséré à l'arrière du Server.\n   * Retirez vos éventuels disques durs personnels situés dans la trappe sous la box.\n2. Préparation : Mettez uniquement l'équipement concerné par l'échange et son bloc d'alimentation dans un carton fermé (ne rendez pas la télécommande ni d'autres accessoires non demandés ; en cas d'oubli dans le colis, retournez vite au point relais avant la relève du transporteur).\n3. En point relais : Aucune impression n'est requise ! Présentez simplement votre pièce d'identité et le QR Code reçu au commerçant relais.\n\nBonne journée,`
@@ -1090,13 +1207,13 @@
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "⭐ [Expert] Demande de résiliation Freebox (Procédure, adresses & matériel)",
                 expert: true,
-                text: `Sur l'assistance technique, nous n'avons pas accès à la résiliation administrative des contrats. Voici la marche à suivre :\n\n* Si vous partez chez un autre opérateur (Portabilité) : Ne résiliez pas vous-même ! Communiquez simplement votre code RIO fixe (obtenu au 3179) à votre nouvel opérateur.\n* Si vous souhaitez une résiliation sèche :\n  1. Contactez notre service dédié au 3244 ou au 01 78 56 95 52 (lun-ven 9h-20h, sam 9h-15h), utilisez le lien direct https://subscribe.free.fr/login/?link=resilonline ou envoyez un courrier recommandé (LRAR) à : PUBLIDISPATCH / FREE RSL – BP 40090 – 91003 Évry Cedex.\n  2. Vous disposerez ensuite de 15 jours pour retourner l'intégralité des équipements (Server, Player, FreePlugs, télécommande, câbles) en point relais grâce au bon de retour généré sur votre Espace Abonné.\n\nBonne journée,`
+                text: `Sur l'assistance technique, nous n'avons pas accès à la résiliation administrative des contrats. Voici la marche à suivre :\n\n* Si vous partez chez un autre opérateur (Portabilité) : Ne résiliez pas vous-même ! Communiquez simplement votre code RIO fixe (obtenu au {{TEL_RIO}}) à votre nouvel opérateur.\n* Si vous souhaitez une résiliation sèche :\n  1. Contactez notre service dédié au {{TEL_ABONNES}} ou au {{TEL_RESIL_FBX}} (lun-ven 9h-20h, sam 9h-15h), utilisez le lien direct https://subscribe.free.fr/login/?link=resilonline ou envoyez un courrier recommandé (LRAR) à : PUBLIDISPATCH / FREE RSL – BP 40090 – 91003 Évry Cedex.\n  2. Vous disposerez ensuite de 15 jours pour retourner l'intégralité des équipements (Server, Player, FreePlugs, télécommande, câbles) en point relais grâce au bon de retour généré sur votre Espace Abonné.\n\nBonne journée,`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "⭐ [Expert] Résiliation Free Mobile & Obtention du RIO",
                 expert: true,
-                text: `Pour mettre fin à votre forfait Free Mobile :\n\n* Si vous conservez votre numéro (Portabilité) : Ne résiliez pas vous-même votre ligne ! Appelez gratuitement le 3179 depuis votre mobile pour obtenir votre code RIO par SMS et transmettez-le à votre nouvel opérateur.\n* Si vous ne souhaitez pas garder votre numéro : Résiliez directement en ligne sur https://mobile.free.fr/account/resilier-mon-compte, appelez notre service dédié au 01 78 56 10 13 (lun-ven 9h-20h, sam 9h-15h) ou envoyez un courrier recommandé (LRAR) à : Free Mobile – Résiliation – 75371 Paris Cedex 08.\n\nBonne journée,`
+                text: `Pour mettre fin à votre forfait Free Mobile :\n\n* Si vous conservez votre numéro (Portabilité) : Ne résiliez pas vous-même votre ligne ! Appelez gratuitement le {{TEL_RIO}} depuis votre mobile pour obtenir votre code RIO par SMS et transmettez-le à votre nouvel opérateur.\n* Si vous ne souhaitez pas garder votre numéro : Résiliez directement en ligne sur https://mobile.free.fr/account/resilier-mon-compte, appelez notre service dédié au {{TEL_RESIL_MOB}} (lun-ven 9h-20h, sam 9h-15h) ou envoyez un courrier recommandé (LRAR) à : Free Mobile – Résiliation – 75371 Paris Cedex 08.\n\nBonne journée,`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1126,7 +1243,7 @@
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "Fin d'offre découverte (1 an) & Politique de prix fixe sans négociation",
                 expert: false,
-                text: `Lors de votre souscription, vous avez bénéficié d'un tarif promotionnel "Offre Découverte" valable durant vos 12 premiers mois d'abonnement 😊. Cette première année étant écoulée, votre abonnement passe automatiquement à son tarif normal fixe, comme indiqué lors de votre inscription.\n\nChez Free, nous ne pratiquons pas la négociation au cas par cas afin de garantir à tous nos abonnés les tarifs les plus bas possibles, sans engagement, avec un maximum de services inclus. (Si toutefois vous souhaitez réévaluer votre offre actuelle, notre service dédié reste joignable au 01 78 56 95 52).\n\nBelle journée à vous 😊`
+                text: `Lors de votre souscription, vous avez bénéficié d'un tarif promotionnel "Offre Découverte" valable durant vos 12 premiers mois d'abonnement 😊. Cette première année étant écoulée, votre abonnement passe automatiquement à son tarif normal fixe, comme indiqué lors de votre inscription.\n\nChez Free, nous ne pratiquons pas la négociation au cas par cas afin de garantir à tous nos abonnés les tarifs les plus bas possibles, sans engagement, avec un maximum de services inclus. (Si toutefois vous souhaitez réévaluer votre offre actuelle, notre service dédié reste joignable au {{TEL_RESIL_FBX}}).\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1138,23 +1255,44 @@
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "Impayé Free Flex (Restitution du mobile) & Anciennes factures post-résiliation",
                 expert: false,
-                text: `* Impayé sur location Free Flex : Conformément aux Conditions Générales de Location, en l'absence de régularisation dans les délais prévus, le contrat de location peut être résilié. Le téléphone devra alors être restitué à Free et les mensualités restantes demeureront dues. Je vous invite à régulariser la situation au plus vite ou à vous rendre en boutique Free.\n* Consulter des factures sur un abonnement résilié depuis longtemps : Vous pouvez joindre le serveur dédié aux archives de facturation au 08 92 13 51 61.\n\nBelle journée à vous 😊`
+                text: `* Impayé sur location Free Flex : Conformément aux Conditions Générales de Location, en l'absence de régularisation dans les délais prévus, le contrat de location peut être résilié. Le téléphone devra alors être restitué à Free et les mensualités restantes demeureront dues. Je vous invite à régulariser la situation au plus vite ou à vous rendre en boutique Free.\n* Consulter des factures sur un abonnement résilié depuis longtemps : Vous pouvez joindre le serveur dédié aux archives de facturation au {{TEL_ARCHIVES}}.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "Retour Box 4G (Backup), Résiliation McAfee & Droit de Rétractation (14j)",
                 expert: false,
-                text: `* Renvoyer un Backup Box 4G : Allez sur votre Espace Abonné Freebox > Ma Freebox > Gérer l'option Backup > Résilier mon option Backup Internet > Télécharger pour imprimer votre étiquette de retour point relais.\n* Résilier l'option McAfee Sécurité : Allez sur votre Espace Abonné Freebox > Mon Abonnement > Protéger mes équipements avec McAfee > cliquez sur le lien de résiliation et confirmez.\n* Exercer votre droit de rétractation (sous 14 jours) :\n  - Pour une ligne Mobile : Cliquez sur le lien "Rétractation" tout en bas du site https://mobile.free.fr/ et validez depuis votre Espace Abonné.\n  - Pour une nouvelle souscription Freebox : Envoyez le formulaire de fin des Conditions Générales d'Abonnement à FREEBOX RÉTRACTATION – 6 Rue Désir Prévost – 91075 Bondoufle (et appelez le 01 78 56 95 52).\n  - Pour une migration Freebox : N'allez pas chercher le colis au point relais et envoyez un courrier signé avec vos identifiants à Free Rétractation – 75371 Paris Cedex 08.\n\nBonne journée,`
+                text: `* Renvoyer un Backup Box 4G : Allez sur votre Espace Abonné Freebox > Ma Freebox > Gérer l'option Backup > Résilier mon option Backup Internet > Télécharger pour imprimer votre étiquette de retour point relais.\n* Résilier l'option McAfee Sécurité : Allez sur votre Espace Abonné Freebox > Mon Abonnement > Protéger mes équipements avec McAfee > cliquez sur le lien de résiliation et confirmez.\n* Exercer votre droit de rétractation (sous 14 jours) :\n  - Pour une ligne Mobile : Cliquez sur le lien "Rétractation" tout en bas du site https://mobile.free.fr/ et validez depuis votre Espace Abonné.\n  - Pour une nouvelle souscription Freebox : Envoyez le formulaire de fin des Conditions Générales d'Abonnement à FREEBOX RÉTRACTATION – 6 Rue Désir Prévost – 91075 Bondoufle (et appelez le {{TEL_RESIL_FBX}}).\n  - Pour une migration Freebox : N'allez pas chercher le colis au point relais et envoyez un courrier signé avec vos identifiants à Free Rétractation – 75371 Paris Cedex 08.\n\nBonne journée,`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "Obtenir le Code RIO Fixe (Liste des numéros de tous les opérateurs)",
                 expert: false,
-                text: `Pour obtenir le code RIO de votre ligne fixe, composez gratuitement le 3179 directement depuis le téléphone branché à votre box.\n\nSi vous êtes dans l'impossibilité d'appeler depuis votre ligne fixe, appelez gratuitement le serveur vocal de votre opérateur depuis votre mobile :\n* Free : 0805 92 3179\n* Orange : 0800 00 3179\n* SFR / SRR : 0800 97 3179\n* Bouygues Telecom : 0800 943 943\n* Numéricable : 0805 85 89 85\n* OVH : 0805 69 3179\n* Sosh / RED / Prixtel / Virgin / UKTelecom / Réseau Santé Social : 0800 71 3179\n* Keyyo : 0805 031 790 | IP Directions : 0805 28 3179 | Legos : 0805 08 41 98\n* Outremer / Mobius : 0805 51 3179 | Mediaserv : 0805 575 575 | Zeop : 0262 61 62 99\n\nBelle journée à vous,`
+                text: `Pour obtenir le code RIO de votre ligne fixe, composez gratuitement le {{TEL_RIO}} directement depuis le téléphone branché à votre box.\n\nSi vous êtes dans l'impossibilité d'appeler depuis votre ligne fixe, appelez gratuitement le serveur vocal de votre opérateur depuis votre mobile :\n* Free : 0805 92 3179\n* Orange : 0800 00 3179\n* SFR / SRR : 0800 97 3179\n* Bouygues Telecom : 0800 943 943\n* Numéricable : 0805 85 89 85\n* OVH : 0805 69 3179\n* Sosh / RED / Prixtel / Virgin / UKTelecom / Réseau Santé Social : 0800 71 3179\n* Keyyo : 0805 031 790 | IP Directions : 0805 28 3179 | Legos : 0805 08 41 98\n* Outremer / Mobius : 0805 51 3179 | Mediaserv : 0805 575 575 | Zeop : 0262 61 62 99\n\nBelle journée à vous,`
             }
         ];
 
-        const UPSELL_PHRASE = `\n\nPetit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de 9,99 €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`;
+        // ===== INFOS CENTRALISÉES : modifier ici = modifié dans toutes les trames ({{CLÉ}}) =====
+        const FACTS = {
+            TEL_ABONNES: '3244', TEL_RIO: '3179', TEL_ID: '555',
+            TEL_RESIL_FBX: '01 78 56 95 52', TEL_RESIL_MOB: '01 78 56 10 13', TEL_ARCHIVES: '08 92 13 51 61',
+            PRIX_FIDELITE: '9,99', PRIX_FIDELITE_APRES: '15,99', NOM_5G: 'Forfait Free 5G+',
+            ENQUETE: 'Un petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐',
+            FIN: 'Belle journée à vous 😊'
+        };
+        const fx = t => t.replace(/\{\{(\w+)\}\}/g, (m, k) => FACTS[k] !== undefined ? FACTS[k] : m);
+        const UPSELL_PHRASE = fx(`\n\nPetit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de {{PRIX_FIDELITE}} €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`);
+        // Trames déjà vérifiées sur assistance.free.fr / www.free.fr (07/11/2026)
+        const VERIFIED = ['Pas de tonalité','Vigilance Phishing','Changement de forfait mobile','Modification du nom ou du titulaire','Langue des Signes','Accéder à Freebox OS','Contrôle parental Freebox','Activation 5G+','Espace Abonné Freebox : Créer','Changer le mot de passe Wi-Fi','Machines virtuelles (VM)','Portabilité du numéro : résiliation','Hors forfait : appel vers un mobile','Déménagement : nouveaux identifiants'];
+        // Parcours enchaînés : bouton « Suite » vers la trame logique suivante
+        const FLOWS = [
+            ['Diagnostic Fibre / Box bloquée','Ticket Incident Fibre 1','Ticket Incident Fibre 2','RDV Technicien : Envoi lien','RDV Technicien : Confirmation','Retard Technicien','Clôture suite Intervention Technicien'],
+            ['Ticket ADSL','Demande de Dédommagement','Clôture suite Intervention Technicien'],
+            ['Demande de résiliation Freebox','Relance avant facturation','Contestation frais non-restitution','Restitution incomplète'],
+            ['Échange de matériel (SWAP)','Clôture suite SWAP'],
+            ['Créer ou réinitialiser son mot de passe','Réinitialisation du mot de passe déclenchée (Espace Abonné Freebox)']
+        ];
+        // Vocabulaire de recherche : synonymes (sans accents)
+        const SYN = { mdp:['mot de passe'], password:['mot de passe'], wifi:['wi-fi'], resil:['resiliation'], resilier:['resiliation'], box:['freebox'], backup:['box 4g'], coupure:['panne','incident'], panne:['incident','ticket'], facture:['facturation','paiement'], rib:['bancaire','iban'], sim:['esim','carte sim'], tv:['television','player'], debit:['speedtest'], lent:['debit','wi-fi'], rembourser:['remboursement','odr'], pin:['puk'], appli:['application'], app:['application'] };
 
         const LS = {
             get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
@@ -1167,7 +1305,7 @@
         const favs = new Set(LS.get('fp_favs', []));
         const usage = LS.get('fp_usage', {});
         let favOnly = false;
-        const edited = {};   // textes retouchés à la main (conservés lors des rafraîchissements)
+        const edited = {}, varVals = {};   // textes retouchés à la main (conservés lors des rafraîchissements)
         function renderSoon() { clearTimeout(renderSoon.t); renderSoon.t = setTimeout(renderCards, 180); }
         const keyOf = m => m.cat + '|' + m.title;
 
@@ -1228,7 +1366,9 @@
         }
 
         const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        let searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
+        let searchIndex = [], titleIndex = [];
+        function buildIndex() { searchIndex = allModels.map(m => norm(m.title + ' ' + fx(m.text))); titleIndex = allModels.map(m => norm(m.title)); }
+        buildIndex();
 
         const OFFICIAL_LINKS = [
             ['🌐 Assistance Free', 'https://assistance.free.fr'],
@@ -1259,6 +1399,7 @@
         }
 
         function deepSearch() {
+            if (navigator.onLine === false) return toast('📴 Hors ligne : recherche Free indisponible');
             let warned = false;
             try { warned = !!sessionStorage.getItem('fp_gwarn'); } catch (e) {}
             if (!warned) {
@@ -1305,6 +1446,7 @@
             applyTheme(document.documentElement.dataset.theme || 'light');
             initLinks();
             populateCategories();
+            renderRecent();
             renderCards();
         }
 
@@ -1341,13 +1483,21 @@
             const container = document.getElementById('cardsContainer');
             const cat = document.getElementById('categorySelect').value;
             const words = norm(document.getElementById('searchInput').value).split(/\s+/).filter(Boolean);
+            const alts = words.map(w => [w, ...(SYN[w] || [])]);
+            const score = {};
 
             const catOrder = [...new Set(allModels.map(m => m.cat))];
             const counts = {};
             const list = [];
             allModels.forEach((m, i) => {
                 if (favOnly && !favs.has(keyOf(m))) return;
-                if (!words.every(w => searchIndex[i].includes(w))) return;
+                let sc = 0;
+                for (const al of alts) {
+                    if (al.some(x => titleIndex[i].includes(x))) sc += 3;
+                    else if (al.some(x => searchIndex[i].includes(x))) sc += 1;
+                    else return;
+                }
+                score[i] = sc;
                 counts[m.cat] = (counts[m.cat] || 0) + 1;
                 if (cat !== 'all' && m.cat !== cat) return;
                 list.push(i);
@@ -1355,6 +1505,7 @@
             renderPoles(catOrder, counts, cat);
 
             list.sort((a, b) => {
+                if (words.length && score[a] !== score[b]) return score[b] - score[a];
                 const ca = catOrder.indexOf(allModels[a].cat), cb = catOrder.indexOf(allModels[b].cat);
                 if (ca !== cb) return ca - cb;
                 const fa = favs.has(keyOf(allModels[a])) ? 1 : 0, fb = favs.has(keyOf(allModels[b])) ? 1 : 0;
@@ -1367,7 +1518,7 @@
             let lastCat = null;
             list.forEach(i => {
                 const m = allModels[i], k = keyOf(m);
-                if (cat === 'all' && m.cat !== lastCat) {
+                if (cat === 'all' && !words.length && m.cat !== lastCat) {
                     const h = document.createElement('div');
                     h.className = 'section-title';
                     h.textContent = m.cat + ' (' + counts[m.cat] + ')';
@@ -1377,7 +1528,10 @@
                 const card = document.createElement('div');
                 card.className = 'card' + (m.expert ? ' expert' : '');
 
-                const adaptedText = (edited[k] !== undefined) ? edited[k] : adaptGreeting(m.text);
+                const tpl = adaptGreeting(fx(m.text));
+                const vals = varVals[k] || (varVals[k] = {});
+                const fillVars = () => { let o = tpl; Object.keys(vals).forEach(v => { if (vals[v]) o = o.split(v).join(vals[v]); }); return o; };
+                const adaptedText = (edited[k] !== undefined) ? edited[k] : fillVars();
                 const hasUnfilledVar = /\[[^\]]+\]/.test(adaptedText);
 
                 const head = document.createElement('div');
@@ -1411,6 +1565,9 @@
                     star.classList.toggle('on', favs.has(k));
                     LS.set('fp_favs', [...favs]);
                 };
+                const nw = adaptedText.split(/\s+/).length;
+                const len = document.createElement('span'); len.className = 'len' + (nw > 180 ? ' long' : ''); len.textContent = nw + ' mots'; rightBox.appendChild(len);
+                if (VERIFIED.some(v => m.title.includes(v))) { const ok = document.createElement('span'); ok.className = 'badge-ok'; ok.textContent = '✔ Vérifié 11/2026'; ok.title = 'Recoupé avec assistance.free.fr / www.free.fr le 07/11/2026'; rightBox.appendChild(ok); }
                 rightBox.append(used, star);
                 if (m.custom) {
                     const del = document.createElement('button');
@@ -1441,6 +1598,16 @@
                 btnUpsell.onclick = () => copyText(ta, btn, k, used, true);
 
                 btnRow.append(btn, btnUpsell);
+                if (words.length && list.indexOf(i) < 9) btn.textContent = '⚡ Copier [' + (list.indexOf(i) + 1) + ']';
+                const fl = FLOWS.find(f => f.some(t => m.title.includes(t)));
+                if (fl) {
+                    const idx = fl.findIndex(t => m.title.includes(t));
+                    const nextT = fl[idx + 1];
+                    const nm = nextT && allModels.find(x => x.title.includes(nextT));
+                    if (nm) { const nb = document.createElement('button'); nb.className = 'btn-upsell'; nb.style.background = '#6b7280'; nb.textContent = '➡️ Suite'; nb.title = nm.title;
+                        nb.onclick = () => { document.getElementById('searchInput').value = nm.title; renderCards(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+                        btnRow.appendChild(nb); }
+                }
 
                 const urls = urlsOf(m.text);
                 const linkBox = document.createElement('div');
@@ -1453,6 +1620,16 @@
                 });
 
                 card.append(head, h2, ta);
+                const vlist = [...new Set(tpl.match(/\[[^\]]+\]/g) || [])];
+                if (vlist.length) {
+                    const vr = document.createElement('div'); vr.className = 'var-row';
+                    vlist.forEach(v => {
+                        const inp = document.createElement('input'); inp.placeholder = v.slice(1, -1); inp.value = vals[v] || '';
+                        inp.addEventListener('input', () => { vals[v] = inp.value.trim(); const o = fillVars(); ta.value = o; edited[k] = o; });
+                        vr.appendChild(inp);
+                    });
+                    card.appendChild(vr);
+                }
                 if (urls.length) card.appendChild(linkBox);
                 card.appendChild(btnRow);
                 container.appendChild(card);
@@ -1476,6 +1653,7 @@
             const done = () => {
                 usage[key] = (usage[key] || 0) + 1;
                 LS.set('fp_usage', usage);
+                pushRecent(key);
                 usedEl.textContent = 'Utilisé ' + usage[key] + '×';
                 const o = btn.textContent;
                 btn.textContent = withUpsell ? 'Copié + 🎁 ! ✔' : 'Copié ! ✔';
@@ -1502,10 +1680,78 @@
             customModels.unshift(newItem);
             LS.set('fp_custom_models', customModels);
             allModels = [...customModels, ...baseModels];
-            searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
+            buildIndex();
             closeAddModal();
             renderCards();
             toast('Nouvelle trame enregistrée ✔');
+        }
+
+        // ----- Récents, blocs, contrôle qualité, stats, sauvegarde -----
+        const recent = LS.get('fp_recent', []);
+        function pushRecent(key) {
+            const i = recent.indexOf(key); if (i >= 0) recent.splice(i, 1);
+            recent.unshift(key); recent.length = Math.min(recent.length, 6);
+            LS.set('fp_recent', recent); renderRecent();
+        }
+        function renderRecent() {
+            const bar = document.getElementById('recentBar'); if (!bar) return;
+            bar.innerHTML = '';
+            const items = recent.map(k => allModels.find(m => keyOf(m) === k)).filter(Boolean);
+            if (!items.length) return;
+            const b = document.createElement('b'); b.textContent = 'Récents :'; bar.appendChild(b);
+            items.forEach(m => { const c = document.createElement('button'); c.className = 'chip'; c.style.fontSize = '.75rem';
+                c.textContent = m.title.replace(/^⭐ \[Expert\] /, '').slice(0, 34);
+                c.onclick = () => { document.getElementById('searchInput').value = m.title; renderCards(); }; bar.appendChild(c); });
+        }
+        function copyBlock(name) {
+            const t = adaptClosing(name === 'FIDELITE' ? UPSELL_PHRASE.trim() : fx('{{' + name + '}}'));
+            const done = () => toast('Bloc copié ✔');
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done); else done();
+        }
+        function runChecks() {
+            const issues = [], titles = {};
+            allModels.forEach(m => {
+                const t = fx(m.text), add = (lvl, msg) => issues.push([lvl, m.title, msg]);
+                titles[m.title] = (titles[m.title] || 0) + 1;
+                if (/oqee/i.test(t + m.title)) add('❌', 'mention d’OQEE (→ Free TV)');
+                if (/freebox connect/i.test(t + m.title)) add('❌', 'mention de Freebox Connect (→ application Free)');
+                if (/^\s*Bonjour/.test(t)) add('❌', 'commence par « Bonjour » (ajouté automatiquement)');
+                if (/assistance\.free\.fr\/(articles|univers|rubrique)/.test(t)) add('❌', 'lien d’article d’assistance (change régulièrement)');
+                if (/\{\{\w+\}\}/.test(t)) add('❌', 'jeton {{…}} inconnu');
+                if (/ {2,}[^\s]/.test(t.replace(/\n +/g, '\n'))) add('⚠️', 'espaces doubles');
+                if (t.length > 1200) add('⚠️', 'long (' + t.length + ' caractères) : à raccourcir pour la messagerie');
+                const last = t.trim().split(/\n\n/).pop();
+                if (!/(journée|soirée|week-end|bientôt|retour|disponible|!|😊|⭐)/i.test(last)) add('ℹ️', 'pas de formule de fin');
+                const v = [...new Set(t.match(/\[[^\]]+\]/g) || [])]; if (v.length) add('ℹ️', 'variables à compléter : ' + v.join(' '));
+            });
+            Object.keys(titles).filter(t => titles[t] > 1).forEach(t => issues.push(['❌', t, 'titre en double']));
+            const body = document.getElementById('qcBody'); body.innerHTML = '';
+            const sum = document.createElement('p'); sum.textContent = allModels.length + ' trames analysées : ' + issues.filter(i => i[0] === '❌').length + ' erreur(s), ' + issues.filter(i => i[0] === '⚠️').length + ' alerte(s), ' + issues.filter(i => i[0] === 'ℹ️').length + ' information(s).'; body.appendChild(sum);
+            issues.sort((a, b) => ['❌', '⚠️', 'ℹ️'].indexOf(a[0]) - ['❌', '⚠️', 'ℹ️'].indexOf(b[0])).forEach(([l, t, msg]) => {
+                const d = document.createElement('div'); d.className = 'qc-item';
+                const a = document.createElement('a'); a.textContent = t; a.onclick = () => { document.getElementById('qcModal').classList.remove('open'); document.getElementById('searchInput').value = t; renderCards(); };
+                d.append(l + ' ', a, ' — ' + msg); body.appendChild(d);
+            });
+            document.getElementById('qcModal').classList.add('open');
+            return issues;
+        }
+        function download(name, mime, content) {
+            const a = document.createElement('a'); a.href = 'data:' + mime + ';charset=utf-8,' + encodeURIComponent(content); a.download = name; a.click();
+        }
+        function exportStats() {
+            const rows = allModels.map(m => [m.title.replace(/;/g, ','), m.cat.replace(/;/g, ','), usage[keyOf(m)] || 0]).sort((a, b) => b[2] - a[2]);
+            download('stats-trames.csv', 'text/csv', 'Titre;Pôle;Copies\n' + rows.map(r => r.join(';')).join('\n'));
+        }
+        function exportBackup() {
+            download('sauvegarde-free-proxi.json', 'application/json', JSON.stringify({ favs: [...favs], usage, custom: customModels, recent }, null, 2));
+        }
+        function restoreBackup(file) {
+            if (!file) return;
+            const r = new FileReader();
+            r.onload = () => { try { const d = JSON.parse(r.result);
+                LS.set('fp_favs', d.favs || []); LS.set('fp_usage', d.usage || {}); LS.set('fp_custom_models', d.custom || []); LS.set('fp_recent', d.recent || []);
+                alert('Sauvegarde restaurée, la page va se recharger.'); location.reload(); } catch (e) { alert('Fichier de sauvegarde invalide.'); } };
+            r.readAsText(file);
         }
 
         function deleteCustom(k) {
@@ -1515,7 +1761,7 @@
             customModels.splice(i, 1);
             LS.set('fp_custom_models', customModels);
             allModels = [...customModels, ...baseModels];
-            searchIndex = allModels.map(m => norm(m.title + ' ' + m.text));
+            buildIndex();
             populateCategories();
             renderCards();
             toast('Trame supprimée');
@@ -1534,12 +1780,20 @@
             const search = document.getElementById('searchInput');
             const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
             if (e.key === '/' && !typing) { e.preventDefault(); search.focus(); search.select(); }
+            else if (!typing && /^[1-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) { const bs = document.querySelectorAll('#cardsContainer .btn'); if (bs[+e.key - 1]) bs[+e.key - 1].click(); }
             else if (e.key === 'Escape') { search.value = ''; search.blur(); closeAddModal(); renderCards(); }
             else if (e.key === 'Enter' && document.activeElement === search) {
                 const b = document.querySelector('#cardsContainer .btn');
                 if (b) b.click();
             }
         });
+
+        // ----- Mode hors ligne : cache du fichier (si hébergé en https) + indicateur de connexion -----
+        if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+        }
+        window.addEventListener('offline', () => toast('📴 Hors ligne : les trames restent disponibles'));
+        window.addEventListener('online', () => toast('🟢 De retour en ligne'));
 
         window.onload = initApp;
     </script>
