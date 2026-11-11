@@ -440,6 +440,7 @@
     <div class="blocks"><b>Blocs :</b>
         <button class="chip" onclick="copyBlock('ENQUETE')">📋 Enquête</button>
         <button class="chip" onclick="copyBlock('FIDELITE')">🎁 Fidélité</button>
+        <button class="chip" onclick="copyBlock('DEDO')">💶 Dédommagement</button>
         <button class="chip" onclick="copyBlock('FIN')">👋 Formule de fin</button>
     </div>
     <div class="blocks" id="recentBar"></div>
@@ -584,6 +585,12 @@
                 title: "Clôture suite DERCO (Fin d'incident collectif)",
                 expert: false,
                 text: `Je constate que suite à l'intervention de nos équipes réseau, l'incident collectif qui vous impactait est désormais résolu. N'hésitez pas à me recontacter en cas de besoin 😉.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous !`
+            },
+            {
+                cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
+                title: "Clôture incident avec dédommagement (Demande transmise)",
+                expert: false,
+                text: `Je constate pour ma part que vos services sont à présent pleinement fonctionnels.\n\n{{DEDO}}\n\nJe reste disponible en cas de besoin 😊.\n\n{{ENQUETE}}\n\nTrès bonne journée à vous ! 😊`
             },
             {
                 cat: "1. 🤝 Gestion du Contact, Suivi & Clôture",
@@ -1069,6 +1076,18 @@
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Changer de forfait mobile en autonomie (Version courte)",
+                expert: false,
+                text: `Pour faire évoluer votre abonnement et profiter d’une formule plus adaptée à vos besoins, vous pouvez modifier votre forfait en toute autonomie depuis votre Espace Abonné Mobile.\n\nVoici les étapes à suivre :\n1. Connectez-vous à votre Espace Abonné Free Mobile avec vos identifiants.\n2. Rendez-vous dans la rubrique Mon compte, puis cliquez sur Mon offre.\n3. Sélectionnez Changer de forfait : vous accédez au récapitulatif des formules disponibles et pouvez valider votre choix en quelques instants.\n\nLe changement est effectif sous 24h pour un passage vers un forfait supérieur. Pour un retour vers un forfait inférieur, il intervient à votre prochaine date de facturation (des frais peuvent s’appliquer, vous les verrez avant de valider).\n\nSi vous avez une Freebox, pensez à rattacher votre ligne mobile à votre abonnement depuis votre Espace Abonné : c’est ce rattachement qui vous donne droit aux tarifs préférentiels et aux avantages Free Family.\n\nJe reste à votre entière disposition si vous avez la moindre question ou besoin d’accompagnement.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
+                title: "Sécurité des appareils : solution McAfee proposée par Free",
+                expert: false,
+                text: `J’ai bien pris note de votre message concernant la sécurité de votre appareil.\n\nPour protéger vos équipements (smartphone, tablette ou ordinateur) contre les menaces en ligne, Free propose en partenariat avec McAfee une solution de sécurité, que vous pouvez découvrir ici : 👉 https://www.free.fr/freebox/antivirus-mcafee\n\nJe reste à votre entière disposition si vous avez la moindre question.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Éligibilité Fibre, Passage à la Fibre & Fermeture du réseau Cuivre",
                 expert: false,
                 text: `* Si votre adresse n'est pas encore éligible : L'opérateur d'infrastructure de votre commune finalise actuellement les travaux de déploiement (fin prévisionnelle estimée au [Date]). Dès l'ouverture commerciale, nous vous contacterons automatiquement. Carte de suivi : https://www.free.fr/freebox/carte-fibre-optique/\n* Récapitulatif du passage à la Fibre (et fermeture de l'ADSL/Cuivre) :\n  📅 Installation : Un technicien installe gratuitement le boîtier optique (PTO) sur un créneau de 2 heures.\n  💲 Coût : L'installation est 100 % gratuite et votre tarif d'abonnement reste strictement identique.\n  📦 Matériel : Si vous avez une Freebox Révolution ou Pop, vous la conservez. Si vous possédez une ancienne Freebox Crystal (incompatible Fibre et non maintenue), nous vous la remplaçons gratuitement !\n\nBelle journée à vous 😊`
@@ -1169,6 +1188,12 @@
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "Ligne mobile restreinte : levée après régularisation (Impayé / hors-forfait)",
+                expert: false,
+                text: `J’ai bien pris note de votre message et je comprends votre situation.\n\nDès que la régularisation de votre situation (règlement de l’impayé ou du dépassement hors-forfait) est enregistrée, la restriction de votre ligne est levée. Lorsque le règlement est effectué par carte bancaire depuis votre Espace Abonné, la remise en service peut prendre jusqu’à 24h.\n\nUne fois la réactivation prise en compte, pensez à redémarrer complètement votre téléphone (ou à activer puis désactiver le mode avion) afin que votre carte SIM capte à nouveau le réseau.\n\nSi vous n’avez pas encore effectué le règlement, vous pouvez le faire dès maintenant depuis votre Espace Abonné Mobile pour enclencher le processus sans délai supplémentaire.\n\nJe reste à votre entière disposition.\n\nBelle journée à vous 😊`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "⭐ [Expert] Régularisation d'impayé, Changement de RIB & Délai rétablissement",
                 expert: true,
                 text: `Pour mettre à jour vos coordonnées bancaires ou régulariser un paiement en attente :\n\n1. Régulariser un impayé : Rendez-vous dans votre Espace Abonné (rubrique Factures) pour régler le montant par carte bancaire. Suite à la régularisation, le rétablissement complet des services TV peut prendre jusqu'à 24h (pensez à redémarrer vos deux boîtiers) et jusqu'à 48h pour le déblocage d'un mobile Free Flex.\n2. Modifier votre RIB / IBAN : Allez dans votre Espace Abonné > Mon Abonnement > Modifier mes informations bancaires (à noter : les prélèvements ayant lieu à date fixe en début de mois, il n'est pas possible de demander un décalage individuel de date de prélèvement).\n\nBonne journée,`
@@ -1178,6 +1203,12 @@
                 title: "⭐ [Expert] ODR Frais de résiliation ancien FAI (100€) & Frais mise en service",
                 expert: true,
                 text: `Voici les modalités concernant vos demandes de remboursement :\n\n1. Frais de résiliation de votre ancien opérateur (ODR jusqu'à 100 €) :\n   * Si vous m'avez transmis votre facture de clôture ici : Je viens de la transférer directement à notre service dédié pour déclencher votre remboursement 😊.\n   * Par voie postale : Envoyez la facture de clôture de l'ancien opérateur accompagnée de votre e-mail de confirmation de souscription Freebox à l'adresse indiquée sur le coupon dans les 4 mois.\n2. Frais de mise en service Freebox :\n   * Si votre offre promotionnelle de souscription inclut leur remboursement (vérifiable au bas de votre e-mail "Confirmation de votre commande Freebox"), demandez-le directement dans votre Espace Abonné Freebox > Mon abonnement > Remboursement des frais de mise en service.\n\nBonne journée,`
+            },
+            {
+                cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
+                title: "ODR : facture de clôture reçue & transmise (Confirmation du remboursement)",
+                expert: false,
+                text: `J’ai bien reçu la facture de clôture de votre ancien opérateur, je vous remercie pour votre retour.\n\nJe viens de la transférer directement à notre service dédié pour déclencher votre remboursement 😊. Ce service reviendra vers vous prochainement par e-mail pour vous confirmer que le nécessaire a bien été fait.\n\nPour votre information, ce remboursement s’effectue par virement bancaire sur votre compte.\n\nJe reste à votre entière disposition.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1277,12 +1308,13 @@
             TEL_RESIL_FBX: '01 78 56 95 52', TEL_RESIL_MOB: '01 78 56 10 13', TEL_ARCHIVES: '08 92 13 51 61',
             PRIX_FIDELITE: '9,99', PRIX_FIDELITE_APRES: '15,99', NOM_5G: 'Forfait Free 5G+',
             ENQUETE: 'Un petit questionnaire va vous être envoyé pour donner votre avis sur la prise en charge de votre demande (et non sur la solution apportée). Merci d’avance, cela encourage toute l’équipe Free Proxi ⭐',
+            DEDO: 'Je vous confirme par ailleurs que je fais personnellement une demande de dédommagement auprès de nos services pour la gêne occasionnée, et ces derniers reviendront directement vers vous pour vous en informer.',
             FIN: 'Belle journée à vous 😊'
         };
         const fx = t => t.replace(/\{\{(\w+)\}\}/g, (m, k) => FACTS[k] !== undefined ? FACTS[k] : m);
         const UPSELL_PHRASE = fx(`\n\nPetit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de {{PRIX_FIDELITE}} €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`);
         // Trames déjà vérifiées sur assistance.free.fr / www.free.fr (07/11/2026)
-        const VERIFIED = ['Pas de tonalité','Vigilance Phishing','Changement de forfait mobile','Modification du nom ou du titulaire','Langue des Signes','Accéder à Freebox OS','Contrôle parental Freebox','Activation 5G+','Espace Abonné Freebox : Créer','Changer le mot de passe Wi-Fi','Machines virtuelles (VM)','Portabilité du numéro : résiliation','Hors forfait : appel vers un mobile','Déménagement : nouveaux identifiants'];
+        const VERIFIED = ['Pas de tonalité','Vigilance Phishing','Changement de forfait mobile','Modification du nom ou du titulaire','Langue des Signes','Accéder à Freebox OS','Contrôle parental Freebox','Activation 5G+','Espace Abonné Freebox : Créer','Changer le mot de passe Wi-Fi','Machines virtuelles (VM)','Portabilité du numéro : résiliation','Hors forfait : appel vers un mobile','Déménagement : nouveaux identifiants','Changer de forfait mobile en autonomie'];
         // Parcours enchaînés : bouton « Suite » vers la trame logique suivante
         const FLOWS = [
             ['Diagnostic Fibre / Box bloquée','Ticket Incident Fibre 1','Ticket Incident Fibre 2','RDV Technicien : Envoi lien','RDV Technicien : Confirmation','Retard Technicien','Clôture suite Intervention Technicien'],
@@ -1598,6 +1630,13 @@
                 btnUpsell.onclick = () => copyText(ta, btn, k, used, true);
 
                 btnRow.append(btn, btnUpsell);
+                if (/^Clôture/.test(m.title) && !/Appel Manqué|dédommagement/i.test(m.title)) {
+                    const bd = document.createElement('button');
+                    bd.className = 'btn-upsell'; bd.style.background = '#0f766e'; bd.textContent = '+ 💶 Dédo';
+                    bd.title = 'Ajoute la demande de dédommagement avant le questionnaire (uniquement si l’abonné y a droit)';
+                    bd.onclick = () => copyText(ta, btn, k, used, false, true);
+                    btnRow.appendChild(bd);
+                }
                 if (words.length && list.indexOf(i) < 9) btn.textContent = '⚡ Copier [' + (list.indexOf(i) + 1) + ']';
                 const fl = FLOWS.find(f => f.some(t => m.title.includes(t)));
                 if (fl) {
@@ -1639,8 +1678,13 @@
             document.getElementById('counter').textContent = list.length + ' trame(s) affichée(s) sur ' + allModels.length + ' au total.';
         }
 
-        function copyText(ta, btn, key, usedEl, withUpsell) {
+        function copyText(ta, btn, key, usedEl, withUpsell, withDedo) {
             let txt = adaptClosing(ta.value);
+            if (withDedo) {
+                const d = fx('{{DEDO}}'), q = fx('{{ENQUETE}}'), i = txt.indexOf(q);
+                if (i >= 0) { txt = txt.slice(0, i) + d + '\n\n' + txt.slice(i); }
+                else { const ps = txt.split('\n\n'), last = ps.pop(); txt = ps.concat([d, last]).join('\n\n'); }
+            }
             if (withUpsell) {
                 const parts = txt.split('\n\n');
                 if (parts.length > 1) {
