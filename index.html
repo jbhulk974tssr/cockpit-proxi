@@ -668,7 +668,9 @@
 
     <header class="free-topbar">
         <div class="free-brand-left">
-            <div class="free-logo-pill">free</div>
+            <div class="free-logo-pill" style="background:#e1000f; padding:2px 10px; border-radius:8px; display:inline-flex; align-items:center;"><svg class="free-logo-svg" viewBox="0 0 100 40" xmlns="http://www.w3.org/2000/svg" style="height:28px; width:auto; display:block;">
+    <text x="5" y="32" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-style="italic" font-size="34" letter-spacing="-1.5">free</text>
+</svg></div>
             <span class="proxi-tag"><span class="live-dot"></span> Proxi OS</span>
             <span class="hud-clock" id="hudClock">--:--:--</span>
             <span class="niel-quote" id="nielQuote" onclick="nextNielQuote()" title="Cliquez pour changer la devise">💡 « Il a Free, il a tout compris » — Sans engagement, prix juste.</span>
@@ -746,14 +748,7 @@
         <button class="chip" onclick="deepSearch()" title="Chercher cette saisie sur Assistance Free">🌐 Chercher Site Free</button>
         <button id="favOnly" class="chip" onclick="toggleFavOnly()">⭐ Favoris</button>
         <button id="compactBtn" class="chip" onclick="toggleCompact()" title="Réduire la hauteur des cartes pour écran partagé">📐 Vue Compacte</button>
-        <select id="themeSelect" class="chip" onchange="applyTheme(this.value)" title="Choisir le thème visuel" aria-label="Choisir le thème">
-            <option value="light">🎨 Thème : ☀️ Free.fr (Clair)</option>
-            <option value="dark">🎨 Thème : 🌙 Sombre (OLED)</option>
-            <option value="niel">🎨 Thème : 💻 Xavier Niel / 42</option>
-            <option value="sw">🎨 Thème : ⚔️ Star Wars (Empire)</option>
-            <option value="mando">🎨 Thème : 🛡️ The Mandalorian</option>
-            <option value="trek">🎨 Thème : 🖖 Star Trek (LCARS)</option>
-        </select>
+        
     </div>
 
     <nav class="poles" id="poleBar" aria-label="Pôles"></nav>
@@ -825,15 +820,7 @@
             <button class="btn-upsell" onclick="copyComposer(true)" style="padding:8px;font-size:.78rem">+ 🎁 Fidélité</button>
         </div>
     </div>
-    <div class="theme-fab" id="themeFab" aria-label="Barre de thèmes flottante">
-        <span>🎨 Thèmes :</span>
-        <button class="theme-pill" data-t="light" onclick="applyTheme('light')">☀️ Free.fr</button>
-        <button class="theme-pill" data-t="dark" onclick="applyTheme('dark')">🌙 Sombre</button>
-        <button class="theme-pill" data-t="niel" onclick="applyTheme('niel')">💻 Niel 42</button>
-        <button class="theme-pill" data-t="sw" onclick="applyTheme('sw')">⚔️ Star Wars</button>
-        <button class="theme-pill" data-t="mando" onclick="applyTheme('mando')">🛡️ Mando</button>
-        <button class="theme-pill" data-t="trek" onclick="applyTheme('trek')">🖖 Star Trek</button>
-    </div>
+    
     <div class="toast" id="toast"></div>
 
     <div class="modal-backdrop" id="qcModal" onclick="if(event.target===this)this.classList.remove('open')">
