@@ -3,381 +3,700 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Proxi – Cockpit Réponses Rapides</title>
-    <style>
+    <title>Free Proxi – Cockpit Réponses Rapides (Édition Compétition)</title>
+            <style>
         :root {
-            --free-red: #cc0000;
-            --dark: #2c3e50;
-            --light-bg: #f4f5f7;
-            --card-bg: #ffffff;
-            --expert-color: #16a085;
-            --proxi-blue: #2980b9;
+            --free-red: #e1000f;
+            --free-red-glow: rgba(225, 0, 15, 0.35);
+            --free-red-hover: #ff1a2a;
+            --dark: #0f172a;
+            --muted: #64748b;
+            --light-bg: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.88);
+            --glass-bg: rgba(255, 255, 255, 0.78);
+            --border-col: rgba(148, 163, 184, 0.28);
+            --expert-color: #0d9488;
+            --expert-glow: rgba(13, 148, 136, 0.28);
+            --proxi-blue: #2563eb;
+            --radius-card: 18px;
+            --radius-pill: 999px;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
         }
+        * { box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--font-sans);
             background-color: var(--light-bg);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(225, 0, 15, 0.06) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(37, 99, 235, 0.06) 0px, transparent 50%),
+                linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+            background-attachment: fixed;
             color: var(--dark);
             margin: 0;
-            padding: 20px;
+            padding: 0 18px 80px 18px;
+            transition: background-color .25s, color .25s;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 16px;
-        }
-        .header h1 {
-            color: var(--free-red);
-            margin: 0 0 6px 0;
-            font-size: 2rem;
-        }
-        .header p {
-            margin: 0;
-            color: #555;
-            font-size: 0.92rem;
-        }
-        .brand { display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:8px; }
-        .brand h1 { margin:0; }
-        .avatar { height:72px; width:72px; border-radius:50%; display:block; box-shadow:0 0 14px rgba(225,0,15,.45); border:2px solid #e1000f; background:#090d16; }
 
-        /* BARRE DYNAMIQUE PROXI */
-        .dyn-bar {
+        /* ===== COMMAND BAR TOP (HUD FREE.FR) ===== */
+        .free-topbar {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            max-width: 1540px;
+            margin: 0 auto 14px auto;
+            padding: 10px 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-col);
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+        }
+        .free-brand-left {
+            display: flex;
+            align-items: center;
             gap: 12px;
             flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            max-width: 1380px;
-            margin: 0 auto 14px auto;
-            background: var(--card-bg);
-            padding: 12px 16px;
+        }
+        .free-logo-pill {
+            background: linear-gradient(135deg, #e1000f 0%, #99000a 100%);
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.35rem;
+            letter-spacing: -0.5px;
+            padding: 4px 15px;
             border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid var(--free-red);
+            font-style: italic;
+            box-shadow: 0 4px 14px var(--free-red-glow);
+            user-select: none;
+        }
+        .proxi-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            background: rgba(225, 0, 15, 0.1);
+            color: var(--free-red);
+            border: 1px solid rgba(225, 0, 15, 0.25);
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulseDot 2s infinite;
+        }
+        @keyframes pulseDot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.45; transform: scale(1.25); }
+        }
+        .hud-clock {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: var(--radius-pill);
+            background: var(--card-bg);
+            border: 1px solid var(--border-col);
+            color: var(--dark);
+        }
+        .niel-quote {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 5px 13px;
+            border-radius: var(--radius-pill);
+            background: var(--card-bg);
+            border: 1px dashed var(--border-col);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .niel-quote:hover {
+            border-color: var(--free-red);
+            color: var(--free-red);
+        }
+        .theme-switcher {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .theme-pill {
+            padding: 6px 11px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--border-col);
+            background: var(--card-bg);
+            color: var(--dark);
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .theme-pill:hover { border-color: var(--free-red); transform: translateY(-1px); }
+        .theme-pill.active {
+            background: var(--free-red);
+            color: #fff;
+            border-color: var(--free-red);
+            box-shadow: 0 3px 12px var(--free-red-glow);
+        }
+
+        /* ===== HERO HEADER HUD ===== */
+        .header {
+            max-width: 1540px;
+            margin: 0 auto 14px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            padding: 6px 10px;
+        }
+        .brand { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+        .brand h1 {
+            margin: 0 0 2px 0;
+            font-size: 1.55rem;
+            font-weight: 900;
+            letter-spacing: -0.6px;
+            color: var(--dark);
+        }
+        .brand h1 span.accent { color: var(--free-red); }
+        .brand p { margin: 0; color: var(--muted); font-size: 0.85rem; font-weight: 500; }
+        .avatar { height: 60px; width: 60px; border-radius: 50%; display: block; box-shadow: 0 0 18px var(--free-red-glow); border: 2px solid var(--free-red); background: #090d16; transition: transform .25s; }
+        .avatar:hover { transform: scale(1.08) rotate(-4deg); }
+
+        .hud-stats {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .stat-pill {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-col);
+            border-radius: 14px;
+            padding: 7px 14px;
+            display: flex;
+            flex-direction: column;
+            min-width: 105px;
+        }
+        .stat-pill small {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+        .stat-pill strong {
+            font-family: var(--font-mono);
+            font-size: 1.05rem;
+            color: var(--dark);
+            font-weight: 800;
+        }
+
+        /* ===== BARRE DYNAMIQUE TELEMETRY ===== */
+        .dyn-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1540px;
+            margin: 0 auto 12px auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            padding: 11px 16px;
+            border-radius: var(--radius-card);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-col);
+            border-left: 5px solid var(--free-red);
         }
         .dyn-group {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.82rem;
+            font-weight: 700;
         }
         .dyn-input, .dyn-select {
-            padding: 7px 10px;
-            font-size: 0.85rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background: #fff;
+            padding: 7px 11px;
+            font-size: 0.82rem;
+            border: 1px solid var(--border-col);
+            border-radius: 10px;
+            background: var(--card-bg);
             color: var(--dark);
+            font-weight: 600;
+            transition: border-color .15s, box-shadow .15s;
         }
         .dyn-input:focus, .dyn-select:focus {
             outline: none;
             border-color: var(--free-red);
+            box-shadow: 0 0 0 3px var(--free-red-glow);
         }
         .btn-mini {
-            padding: 7px 12px;
-            border-radius: 6px;
-            border: 1px solid #d5d9de;
-            background: #fff;
+            padding: 7px 13px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--border-col);
+            background: var(--card-bg);
             color: var(--dark);
-            font-weight: 600;
-            font-size: 0.82rem;
+            font-weight: 700;
+            font-size: 0.78rem;
             cursor: pointer;
             transition: all .15s;
         }
-        .btn-mini:hover {
-            border-color: var(--free-red);
-            color: var(--free-red);
-        }
-        .btn-mini.primary {
-            background: var(--expert-color);
-            color: #fff;
-            border-color: var(--expert-color);
-        }
-        .btn-mini.reset {
-            background: #e74c3c;
-            color: #fff;
-            border-color: #e74c3c;
-        }
+        .btn-mini:hover { border-color: var(--free-red); color: var(--free-red); }
+        .btn-mini.primary { background: var(--expert-color); color: #fff; border-color: var(--expert-color); }
+        .btn-mini.reset { background: var(--free-red); color: #fff; border-color: var(--free-red); }
 
+        /* ===== COMMAND SEARCH BAR (STICKY GLASS) ===== */
         .filters {
             display: flex;
-            gap: 10px;
+            gap: 9px;
             justify-content: center;
-            max-width: 1380px;
-            margin: 0 auto 16px auto;
+            max-width: 1540px;
+            margin: 0 auto 14px auto;
             flex-wrap: wrap;
             position: sticky;
             top: 8px;
             z-index: 100;
-            background: rgba(244, 245, 247, 0.95);
-            padding: 12px 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: var(--glass-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            padding: 11px 15px;
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-col);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
         .search-bar, .category-select {
-            padding: 10px 14px;
-            font-size: 0.95rem;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 0.92rem;
+            border: 1.5px solid var(--border-col);
+            border-radius: var(--radius-pill);
             flex: 1;
             min-width: 220px;
-            background: white;
-            transition: border-color 0.2s;
+            background: var(--card-bg);
+            color: var(--dark);
+            font-weight: 500;
+            transition: all 0.2s;
         }
         .search-bar:focus, .category-select:focus {
             outline: none;
             border-color: var(--free-red);
+            box-shadow: 0 0 0 3px var(--free-red-glow);
         }
-        .chip { padding:9px 13px; border:2px solid #ddd; border-radius:8px; background:#fff; cursor:pointer; font-size:0.88rem; font-weight:600; }
-        .chip.active { background:#fff4cc; border-color:#f1c40f; }
+        .chip {
+            padding: 9px 14px;
+            border: 1.5px solid var(--border-col);
+            border-radius: var(--radius-pill);
+            background: var(--card-bg);
+            color: var(--dark);
+            cursor: pointer;
+            font-size: 0.83rem;
+            font-weight: 700;
+            transition: all .15s;
+        }
+        .chip:hover { border-color: var(--free-red); transform: translateY(-1px); }
+        .chip.active { background: #fef08a; border-color: #eab308; color: #713f12; }
 
         .counter {
             text-align: center;
-            margin-bottom: 14px;
-            font-weight: bold;
-            color: #555;
-            font-size: 0.92rem;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-family: var(--font-mono);
         }
+
+        /* ===== GRILLE & CARTES HIGH-TECH ===== */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr));
             gap: 18px;
-            max-width: 1600px;
+            max-width: 1640px;
             margin: 0 auto;
         }
         .card {
             background: var(--card-bg);
-            border-radius: 10px;
-            padding: 16px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
-            border-top: 4px solid var(--proxi-blue);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-card);
+            padding: 18px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-col);
+            border-top: 4px solid var(--free-red);
             display: flex;
             flex-direction: column;
+            transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .18s, border-color .18s;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 32px rgba(0,0,0,0.1);
+            border-color: rgba(225, 0, 15, 0.45);
         }
         .card.expert {
             border-top: 4px solid var(--expert-color);
+        }
+        .card.expert:hover {
+            border-color: rgba(13, 148, 136, 0.55);
+            box-shadow: 0 14px 32px var(--expert-glow);
         }
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             gap: 6px;
             flex-wrap: wrap;
         }
         .card h2 {
             font-size: 1.02rem;
-            margin: 4px 0 8px 0;
-            line-height: 1.3;
+            font-weight: 800;
+            margin: 2px 0 10px 0;
+            line-height: 1.34;
             color: var(--dark);
+            letter-spacing: -0.2px;
         }
         .badge {
-            background-color: #ebf5fb;
-            color: var(--proxi-blue);
-            font-size: 0.73rem;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: bold;
+            background-color: rgba(225, 0, 15, 0.09);
+            color: var(--free-red);
+            font-size: 0.71rem;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+            font-weight: 800;
+            letter-spacing: 0.2px;
         }
         .badge.expert {
-            background-color: #e8f8f5;
+            background-color: rgba(13, 148, 136, 0.12);
             color: var(--expert-color);
         }
         .badge-warn {
             background-color: #fef3c7;
-            color: #d97706;
-            font-size: 0.72rem;
-            padding: 2px 7px;
-            border-radius: 4px;
-            font-weight: 700;
+            color: #b45309;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: var(--radius-pill);
+            font-weight: 800;
             border: 1px solid #f59e0b;
         }
         textarea {
             width: 100%;
             height: 175px;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
+            padding: 12px;
+            border: 1px solid var(--border-col);
+            border-radius: 12px;
             resize: vertical;
             font-family: inherit;
-            font-size: 0.89rem;
-            line-height: 1.45;
+            font-size: 0.88rem;
+            line-height: 1.5;
             margin-bottom: 10px;
-            box-sizing: border-box;
-            background-color: #fafafa;
+            background-color: rgba(248, 250, 252, 0.75);
+            color: var(--dark);
+            transition: border-color .15s, background-color .15s;
         }
-        body.compact textarea {
-            height: 105px;
-        }
+        body.compact textarea { height: 105px; }
         textarea:focus {
             outline: none;
             border-color: var(--free-red);
-            background-color: #fff;
+            background-color: var(--card-bg);
         }
         .btn-row {
             display: flex;
-            gap: 8px;
+            gap: 7px;
             margin-top: auto;
         }
         .btn {
-            background-color: var(--free-red);
+            background: linear-gradient(135deg, var(--free-red) 0%, #b8000c 100%);
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: var(--radius-pill);
             cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: background 0.2s;
+            font-weight: 800;
+            font-size: 0.86rem;
+            transition: all 0.18s;
             flex: 1;
+            box-shadow: 0 3px 10px var(--free-red-glow);
         }
-        .btn:hover { background-color: #a30000; }
-        .btn.copied { background-color: #27ae60; }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn.copied { background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 3px 12px rgba(16,185,129,0.4); }
         .btn-upsell {
-            background-color: #2c3e50;
+            background-color: #1e293b;
             color: #fff;
             border: none;
             padding: 10px 12px;
-            border-radius: 6px;
+            border-radius: var(--radius-pill);
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.82rem;
-            transition: opacity 0.2s;
+            font-weight: 700;
+            font-size: 0.79rem;
+            transition: all 0.15s;
             white-space: nowrap;
         }
-        .btn-upsell:hover { opacity: 0.88; }
+        .btn-upsell:hover { background-color: #0f172a; transform: translateY(-1px); }
+        .btn-compose {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: transform .15s;
+        }
+        .btn-compose:hover { transform: translateY(-1px); filter: brightness(1.1); }
 
-        .star { background:none; border:none; cursor:pointer; font-size:1.3rem; line-height:1; color:#ccc; padding:0 2px; }
-        .star.on { color:#f1c40f; }
-        .used { font-size:.72rem; color:#888; white-space:nowrap; }
-        .hint { text-align:center; color:#888; font-size:.8rem; margin:-8px 0 14px; }
-        kbd { background:#eee; border:1px solid #ccc; border-bottom-width:2px; border-radius:4px; padding:0 5px; font-size:.78rem; }
-        .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#27ae60; color:#fff; padding:12px 22px; border-radius:30px; font-weight:bold; box-shadow:0 6px 18px rgba(0,0,0,.25); transition:transform .25s; z-index:200; pointer-events:none; }
+        .star { background:none; border:none; cursor:pointer; font-size:1.3rem; line-height:1; color:#cbd5e1; padding:0 2px; transition:transform .15s; }
+        .star:hover { transform: scale(1.2); }
+        .star.on { color:#f59e0b; text-shadow: 0 0 8px rgba(245,158,11,0.45); }
+        .used { font-size:.71rem; color:var(--muted); white-space:nowrap; font-family: var(--font-mono); }
+        .hint { text-align:center; color:var(--muted); font-size:.78rem; margin:-4px 0 12px; }
+        kbd { background:var(--card-bg); border:1px solid var(--border-col); border-bottom-width:2px; border-radius:6px; padding:1px 6px; font-size:.75rem; font-family:var(--font-mono); font-weight:700; }
+        .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(90px); background:#10b981; color:#fff; padding:12px 26px; border-radius:var(--radius-pill); font-weight:800; box-shadow:0 10px 28px rgba(0,0,0,.3); transition:transform .25s cubic-bezier(.2,.8,.2,1); z-index:400; pointer-events:none; }
         .toast.show { transform:translateX(-50%) translateY(0); }
-        .empty { grid-column:1/-1; text-align:center; color:#888; padding:40px; }
-        .links { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; max-width:1380px; margin:0 auto 14px; }
-        .links a, .card-links a { text-decoration:none; font-size:.8rem; padding:5px 11px; border-radius:20px; background:#fff; border:1px solid #d5d9de; color:var(--proxi-blue); font-weight:600; }
-        .links a:hover, .card-links a:hover { border-color:var(--free-red); color:var(--free-red); }
-        .links .tel { font-size:.8rem; padding:5px 11px; border-radius:20px; background:#fdecea; color:var(--free-red); font-weight:700; }
+        .empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:44px; font-weight:600; }
+
+        .links { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; max-width:1540px; margin:0 auto 14px; }
+        .links a, .card-links a { text-decoration:none; font-size:.78rem; padding:5px 12px; border-radius:var(--radius-pill); background:var(--card-bg); border:1px solid var(--border-col); color:var(--dark); font-weight:700; transition:all .15s; }
+        .links a:hover, .card-links a:hover { border-color:var(--free-red); color:var(--free-red); transform: translateY(-1px); }
+        .links .tel { font-size:.78rem; padding:5px 13px; border-radius:var(--radius-pill); background:rgba(225,0,15,0.1); color:var(--free-red); font-weight:800; font-family:var(--font-mono); border:1px solid rgba(225,0,15,0.25); }
         .card-links { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-        .card-links a { font-size:.73rem; padding:3px 9px; background:#f4f9fd; }
+        .card-links a { font-size:.71rem; padding:3px 9px; background:rgba(148,163,184,0.1); }
 
-        .poles { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; max-width:1380px; margin:0 auto 14px; }
-        .pole-chip { padding:7px 13px; border:2px solid #ddd; border-radius:22px; background:#fff; color:var(--dark); cursor:pointer; font-size:.83rem; font-weight:600; transition:all .15s; }
-        .pole-chip:hover { border-color:var(--free-red); }
-        .pole-chip.active { background:var(--free-red); border-color:var(--free-red); color:#fff; }
-        .section-title { grid-column:1/-1; font-size:1.12rem; font-weight:700; color:var(--dark); border-bottom:2px solid var(--free-red); padding:6px 4px; margin-top:10px; }
+        .poles { display:flex; gap:7px; justify-content:center; flex-wrap:wrap; max-width:1540px; margin:0 auto 14px; }
+        .pole-chip { padding:7px 14px; border:1.5px solid var(--border-col); border-radius:var(--radius-pill); background:var(--card-bg); color:var(--dark); cursor:pointer; font-size:.81rem; font-weight:700; transition:all .15s; }
+        .pole-chip:hover { border-color:var(--free-red); color:var(--free-red); transform: translateY(-1px); }
+        .pole-chip.active { background:var(--free-red); border-color:var(--free-red); color:#fff; box-shadow:0 4px 14px var(--free-red-glow); }
+        .section-title { grid-column:1/-1; font-size:1.1rem; font-weight:900; color:var(--dark); border-bottom:2px solid var(--free-red); padding:8px 4px; margin-top:10px; display:flex; align-items:center; justify-content:space-between; letter-spacing:-0.3px; }
 
-        .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:300; padding:16px; }
+        .modal-backdrop { position:fixed; inset:0; background:rgba(2,6,23,0.75); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:350; padding:16px; }
         .modal-backdrop.open { display:flex; }
-        .modal-box { background:var(--card-bg); color:var(--dark); max-width:560px; width:100%; border-radius:12px; padding:22px; box-shadow:0 12px 32px rgba(0,0,0,0.35); display:flex; flex-direction:column; gap:12px; }
-        .modal-box h3 { margin:0; color:var(--free-red); }
+        .modal-box { background:var(--card-bg); color:var(--dark); max-width:560px; width:100%; border-radius:20px; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.45); border:1px solid var(--border-col); display:flex; flex-direction:column; gap:12px; }
+        .modal-box h3 { margin:0; color:var(--free-red); font-weight:900; }
 
-        /* ===== THÈME SOMBRE ===== */
-        html[data-theme="dark"] { --light-bg:#14171c; --card-bg:#1e232b; --dark:#e6e9ee; color-scheme:dark; }
-        html[data-theme="dark"] .header h1 { color:#ff5a5a; }
-        html[data-theme="dark"] .header p, html[data-theme="dark"] .counter { color:#9aa4b2; }
-        html[data-theme="dark"] .filters { background:rgba(20,23,28,.95); box-shadow:0 4px 12px rgba(0,0,0,.5); }
-        html[data-theme="dark"] .search-bar, html[data-theme="dark"] .category-select, html[data-theme="dark"] .chip, html[data-theme="dark"] .dyn-input, html[data-theme="dark"] .dyn-select, html[data-theme="dark"] .btn-mini { background:#232a33; color:#e6e9ee; border-color:#3a4350; }
-        html[data-theme="dark"] .chip.active { background:#4a3f10; border-color:#f1c40f; }
-        html[data-theme="dark"] .card { box-shadow:0 3px 10px rgba(0,0,0,.45); }
-        html[data-theme="dark"] textarea { background:#171b21; color:#e6e9ee; border-color:#3a4350; }
-        html[data-theme="dark"] textarea:focus { background:#1c2128; }
-        html[data-theme="dark"] .badge { background:#1d3345; color:#7cc0ee; }
-        html[data-theme="dark"] .badge.expert { background:#173a33; color:#4fd1b5; }
-        html[data-theme="dark"] .badge-warn { background:#422006; color:#fbbf24; border-color:#d97706; }
-        html[data-theme="dark"] .links a, html[data-theme="dark"] .card-links a { background:#232a33; border-color:#3a4350; color:#7cc0ee; }
-        html[data-theme="dark"] .links .tel { background:#3a1d1d; color:#ff7b7b; }
-        html[data-theme="dark"] .used, html[data-theme="dark"] .hint, html[data-theme="dark"] .empty { color:#8a94a3; }
-        html[data-theme="dark"] kbd { background:#2b323c; color:#cfd6df; border-color:#4a5462; }
-        html[data-theme="dark"] .pole-chip { background:#232a33; border-color:#3a4350; color:#e6e9ee; }
-        html[data-theme="dark"] .pole-chip.active { background:var(--free-red); border-color:var(--free-red); color:#fff; }
-
-        /* ===== THÈME STAR WARS ===== */
-        html[data-theme="sw"] { --light-bg:#02030a; --card-bg:rgba(9,13,26,.93); --dark:#dfe6f3; color-scheme:dark; }
-        html[data-theme="sw"] body { background-color:#02030a; background-attachment:fixed; background-size:260px 260px;
-            background-image:radial-gradient(1px 1px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 130px 90px,#fff,transparent),radial-gradient(1.6px 1.6px at 210px 160px,#ffe9a8,transparent),radial-gradient(1px 1px at 70px 190px,#fff,transparent),radial-gradient(1.2px 1.2px at 180px 40px,#cfe3ff,transparent),radial-gradient(1px 1px at 240px 230px,#fff,transparent); }
-        html[data-theme="sw"] .header h1 { color:#ffe81f; text-transform:uppercase; letter-spacing:3px; font-family:'Franklin Gothic Medium','Arial Narrow',Arial,sans-serif; text-shadow:0 0 14px rgba(255,232,31,.45); }
-        html[data-theme="sw"] .header p, html[data-theme="sw"] .counter { color:#8fa3c8; }
-        html[data-theme="sw"] .avatar { box-shadow:0 0 0 2px #e1000f, 0 0 20px rgba(225,0,15,.85); border-color:#e1000f; }
-        html[data-theme="sw"] .filters, html[data-theme="sw"] .dyn-bar { background:rgba(5,8,20,.92); border:1px solid #1d2a4a; box-shadow:0 0 18px rgba(79,195,255,.18); }
-        html[data-theme="sw"] .search-bar, html[data-theme="sw"] .category-select, html[data-theme="sw"] .chip, html[data-theme="sw"] .dyn-input, html[data-theme="sw"] .dyn-select, html[data-theme="sw"] .btn-mini { background:#070b18; color:#dfe6f3; border-color:#25345a; }
-        html[data-theme="sw"] .search-bar:focus, html[data-theme="sw"] .category-select:focus { border-color:#4fc3ff; box-shadow:0 0 10px rgba(79,195,255,.5); }
-        html[data-theme="sw"] .chip.active { background:#3a3306; border-color:#ffe81f; color:#ffe81f; }
-        html[data-theme="sw"] .card { border:1px solid #1d2a4a; border-top:4px solid #4fc3ff; box-shadow:0 0 14px rgba(79,195,255,.12); }
-        html[data-theme="sw"] .card.expert { border-top:4px solid #3ddc84; box-shadow:0 0 14px rgba(61,220,132,.14); }
-        html[data-theme="sw"] .card h2 { color:#ffe81f; }
-        html[data-theme="sw"] textarea { background:#050813; color:#dfe6f3; border-color:#25345a; }
-        html[data-theme="sw"] textarea:focus { border-color:#4fc3ff; background:#070b18; }
-        html[data-theme="sw"] .badge { background:#0d2236; color:#6fd0ff; }
-        html[data-theme="sw"] .badge.expert { background:#0c2e22; color:#5be3a0; }
-        html[data-theme="sw"] .star.on { color:#ffe81f; text-shadow:0 0 8px rgba(255,232,31,.7); }
-        html[data-theme="sw"] .btn { background:linear-gradient(180deg,#e01b24,#a30d14); box-shadow:0 0 10px rgba(255,42,42,.55); }
-        html[data-theme="sw"] .btn:hover { background:linear-gradient(180deg,#ff3340,#c1121f); box-shadow:0 0 16px rgba(255,42,42,.85); }
-        html[data-theme="sw"] .btn.copied { background:linear-gradient(180deg,#34d27b,#1c9a55); box-shadow:0 0 14px rgba(61,220,132,.7); }
-        html[data-theme="sw"] .links a, html[data-theme="sw"] .card-links a { background:#070b18; border-color:#25345a; color:#6fd0ff; }
-        html[data-theme="sw"] .links a:hover, html[data-theme="sw"] .card-links a:hover { border-color:#ffe81f; color:#ffe81f; }
-        html[data-theme="sw"] .links .tel { background:#2a0b0e; color:#ff6b6b; }
-        html[data-theme="sw"] .used, html[data-theme="sw"] .hint, html[data-theme="sw"] .empty { color:#7d8fb3; }
-        html[data-theme="sw"] kbd { background:#0d1428; color:#cfe3ff; border-color:#25345a; }
-        html[data-theme="sw"] .pole-chip { background:#070b18; border-color:#25345a; color:#cfe3ff; }
-        html[data-theme="sw"] .pole-chip:hover { border-color:#ffe81f; }
-        html[data-theme="sw"] .pole-chip.active { background:#3a3306; border-color:#ffe81f; color:#ffe81f; box-shadow:0 0 10px rgba(255,232,31,.4); }
-        html[data-theme="sw"] .section-title { color:#ffe81f; border-bottom-color:#4fc3ff; text-shadow:0 0 10px rgba(255,232,31,.35); }
-        .blocks { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; align-items:center; max-width:1380px; margin:0 auto 10px; font-size:.85rem; }
+        .blocks { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; align-items:center; max-width:1540px; margin:0 auto 10px; font-size:.83rem; }
         .blocks:empty { display:none; }
-        .tools { max-width:1380px; margin:0 auto 12px; text-align:center; font-size:.85rem; }
-        .tools summary { cursor:pointer; font-weight:600; margin-bottom:8px; }
+        .tools { max-width:1540px; margin:0 auto 10px; text-align:center; font-size:.83rem; }
+        .tools summary { cursor:pointer; font-weight:700; margin-bottom:8px; color:var(--muted); }
         .tools .btn-mini { margin:0 4px; display:inline-block; }
         .var-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
-        .var-row input { flex:1; min-width:110px; padding:5px 8px; font-size:.8rem; border:1px solid #f59e0b; border-radius:6px; background:#fffbeb; color:#222; }
-        .badge-ok { background:#dcfce7; color:#15803d; font-size:.7rem; padding:2px 7px; border-radius:4px; font-weight:700; border:1px solid #86efac; }
-        .len { font-size:.7rem; color:#888; } .len.long { color:#d97706; font-weight:700; }
-        .qc-item { padding:6px 0; border-bottom:1px solid #8883; font-size:.88rem; } .qc-item a { cursor:pointer; color:var(--proxi-blue); text-decoration:underline; }
-        html[data-theme="dark"] .badge-ok, html[data-theme="sw"] .badge-ok { background:#14532d; color:#86efac; border-color:#166534; }
+        .var-row input { flex:1; min-width:110px; padding:6px 10px; font-size:.8rem; border:1.5px solid #f59e0b; border-radius:9px; background:#fffbeb; color:#1e293b; font-weight:700; }
+        .badge-ok { background:#dcfce7; color:#15803d; font-size:.69rem; padding:2px 8px; border-radius:var(--radius-pill); font-weight:800; border:1px solid #86efac; }
+        .len { font-size:.7rem; color:var(--muted); font-family:var(--font-mono); } .len.long { color:#d97706; font-weight:700; }
+        .qc-item { padding:6px 0; border-bottom:1px solid var(--border-col); font-size:.87rem; } .qc-item a { cursor:pointer; color:var(--free-red); text-decoration:underline; font-weight:700; }
+
+        /* ===== MEMO EXPRESS & COMPOSER DOCK ===== */
+        .memo-panel { max-width:1540px; margin:0 auto 12px; background:var(--glass-bg); backdrop-filter:blur(12px); border-radius:var(--radius-card); padding:10px 16px; box-shadow:0 4px 16px rgba(0,0,0,.04); border:1px solid var(--border-col); border-left:5px solid var(--expert-color); font-size:.82rem; }
+        .memo-panel summary { cursor:pointer; font-weight:800; color:var(--dark); }
+        .memo-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:8px; margin-top:10px; }
+        .memo-card { background:var(--card-bg); padding:10px 12px; border-radius:12px; border:1px solid var(--border-col); display:flex; flex-direction:column; gap:4px; }
+        .memo-card b { color:var(--free-red); font-size:.8rem; }
+        .memo-card span { font-size:.77rem; line-height:1.38; }
+        .memo-card button { align-self:flex-start; margin-top:4px; padding:4px 10px; font-size:.72rem; border-radius:var(--radius-pill); border:1px solid var(--border-col); background:var(--light-bg); color:var(--dark); cursor:pointer; font-weight:700; }
+        .memo-card button:hover { border-color:var(--free-red); color:var(--free-red); }
+
+        .composer-dock { position:fixed; bottom:16px; right:16px; width:min(460px, calc(100vw - 32px)); background:var(--card-bg); backdrop-filter:blur(16px); color:var(--dark); border-radius:18px; box-shadow:0 16px 40px rgba(0,0,0,.35); border:2px solid var(--free-red); padding:14px; z-index:250; display:none; flex-direction:column; gap:8px; }
+        .composer-dock.open { display:flex; }
+        .composer-dock h4 { margin:0; font-size:.9rem; display:flex; justify-content:space-between; align-items:center; color:var(--free-red); font-weight:800; }
+        .composer-dock textarea { height:130px; margin:0; font-size:.83rem; }
+
+        .theme-fab {
+            position: fixed;
+            bottom: 14px;
+            left: 14px;
+            z-index: 260;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.5px solid var(--free-red);
+            padding: 6px 10px;
+            border-radius: var(--radius-pill);
+            box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+            flex-wrap: wrap;
+        }
+        .theme-fab span { font-size: 0.74rem; font-weight: 800; padding: 0 4px; color: var(--dark); }
+        .theme-fab .theme-pill { padding: 4px 9px; font-size: 0.73rem; }
+
+        /* =====================================================================
+           2. THÈME SOMBRE : FREEBOX ULTRA CYBER-OLED
+           ===================================================================== */
+        html[data-theme="dark"] {
+            --light-bg: #07090e;
+            --card-bg: rgba(17, 22, 34, 0.88);
+            --glass-bg: rgba(15, 20, 32, 0.82);
+            --dark: #f1f5f9;
+            --muted: #94a3b8;
+            --border-col: rgba(148, 163, 184, 0.18);
+            color-scheme: dark;
+        }
+        html[data-theme="dark"] body {
+            background-image: 
+                radial-gradient(at 15% 0%, rgba(225, 0, 15, 0.14) 0px, transparent 50%),
+                radial-gradient(at 85% 0%, rgba(56, 189, 248, 0.12) 0px, transparent 50%),
+                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+        }
+        html[data-theme="dark"] textarea { background-color: rgba(9, 12, 20, 0.85); }
+        html[data-theme="dark"] .badge-ok { background: #064e3b; color: #6ee7b7; border-color: #059669; }
+        html[data-theme="dark"] .badge-warn { background: #451a03; color: #fbbf24; border-color: #d97706; }
+
+        /* =====================================================================
+           3. THÈME XAVIER NIEL / ÉCOLE 42 / ILIAD MATRIX
+           ===================================================================== */
+        html[data-theme="niel"] {
+            --free-red: #00ff66;
+            --free-red-glow: rgba(0, 255, 102, 0.35);
+            --free-red-hover: #34d399;
+            --light-bg: #030604;
+            --card-bg: rgba(8, 16, 11, 0.92);
+            --glass-bg: rgba(6, 13, 9, 0.88);
+            --dark: #d1fae5;
+            --muted: #5eead4;
+            --border-col: rgba(0, 255, 102, 0.28);
+            --expert-color: #ff0055;
+            --expert-glow: rgba(255, 0, 85, 0.35);
+            color-scheme: dark;
+        }
+        html[data-theme="niel"] body {
+            font-family: var(--font-mono);
+            background-image: linear-gradient(rgba(0,255,102,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,102,0.04) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        html[data-theme="niel"] .free-logo-pill { background: #e1000f; color: #fff; box-shadow: 0 0 14px rgba(225,0,15,0.75); }
+        html[data-theme="niel"] .card h2 { color: #00ff66; }
+        html[data-theme="niel"] textarea { background-color: #020503; color: #a7f3d0; }
+        html[data-theme="niel"] .btn, html[data-theme="niel"] .pole-chip.active, html[data-theme="niel"] .theme-pill.active { background: #00ff66; color: #031207; font-weight: 900; }
+
+        /* =====================================================================
+           4. THÈME STAR WARS (EMPIRE / HOLOCRON)
+           ===================================================================== */
+        html[data-theme="sw"] {
+            --free-red: #e1000f;
+            --free-red-glow: rgba(225, 0, 15, 0.5);
+            --light-bg: #02030a;
+            --card-bg: rgba(9, 14, 28, 0.92);
+            --glass-bg: rgba(6, 10, 22, 0.88);
+            --dark: #e2e8f0;
+            --muted: #93c5fd;
+            --border-col: rgba(79, 195, 255, 0.28);
+            --expert-color: #3ddc84;
+            color-scheme: dark;
+        }
+        html[data-theme="sw"] body {
+            background-color: #02030a;
+            background-size: 260px 260px;
+            background-image: radial-gradient(1px 1px at 20px 30px,#fff,transparent),radial-gradient(1px 1px at 130px 90px,#fff,transparent),radial-gradient(1.6px 1.6px at 210px 160px,#ffe9a8,transparent),radial-gradient(1px 1px at 70px 190px,#fff,transparent),radial-gradient(1.2px 1.2px at 180px 40px,#cfe3ff,transparent);
+        }
+        html[data-theme="sw"] .brand h1 { color: #ffe81f; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 14px rgba(255,232,31,.45); }
+        html[data-theme="sw"] .card { border-top: 4px solid #4fc3ff; box-shadow: 0 0 18px rgba(79,195,255,.12); }
+        html[data-theme="sw"] .card h2 { color: #ffe81f; }
+        html[data-theme="sw"] textarea { background: #040711; color: #e2e8f0; }
+        html[data-theme="sw"] .pole-chip.active, html[data-theme="sw"] .theme-pill.active { background: #3a3306; border-color: #ffe81f; color: #ffe81f; box-shadow: 0 0 12px rgba(255,232,31,.4); }
+        html[data-theme="sw"] .section-title { color: #ffe81f; border-bottom-color: #4fc3ff; }
+
+        /* =====================================================================
+           5. THÈME THE MANDALORIAN (BESKAR & GROGU FORGE)
+           ===================================================================== */
+        html[data-theme="mando"] {
+            --free-red: #d97706;
+            --free-red-glow: rgba(217, 119, 6, 0.4);
+            --free-red-hover: #f59e0b;
+            --light-bg: #12100e;
+            --card-bg: rgba(28, 25, 23, 0.94);
+            --glass-bg: rgba(24, 21, 19, 0.9);
+            --dark: #f5f5f4;
+            --muted: #a8a29e;
+            --border-col: rgba(168, 162, 158, 0.25);
+            --expert-color: #84cc16;
+            color-scheme: dark;
+        }
+        html[data-theme="mando"] body {
+            background-image: repeating-linear-gradient(135deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 8px);
+        }
+        html[data-theme="mando"] .brand h1 { color: #fbbf24; letter-spacing: 1.5px; text-transform: uppercase; }
+        html[data-theme="mando"] .free-logo-pill { background: linear-gradient(135deg, #78716c, #44403c); border: 1px solid #d6d3d1; color: #fbbf24; }
+        html[data-theme="mando"] .card h2 { color: #fde68a; }
+        html[data-theme="mando"] textarea { background: #0f0e0d; color: #e7e5e4; }
+
+        /* =====================================================================
+           6. THÈME STAR TREK (LCARS ENTERPRISE PADD)
+           ===================================================================== */
+        html[data-theme="trek"] {
+            --free-red: #ff9900;
+            --free-red-glow: rgba(255, 153, 0, 0.45);
+            --free-red-hover: #ffb84d;
+            --light-bg: #000000;
+            --card-bg: #080a14;
+            --glass-bg: #080a14;
+            --dark: #ffcc66;
+            --muted: #99ccff;
+            --border-col: #cc99cc;
+            --expert-color: #99ccff;
+            color-scheme: dark;
+        }
+        html[data-theme="trek"] body { background-image: none; }
+        html[data-theme="trek"] .brand h1 { color: #ff9900; text-transform: uppercase; letter-spacing: 2.5px; }
+        html[data-theme="trek"] .free-topbar { border-left: 22px solid #ff9900; border-bottom: 4px solid #ff9900; border-radius: 0 0 28px 28px; }
+        html[data-theme="trek"] .dyn-bar { border-left: 18px solid #cc99cc; border-radius: 26px 12px 12px 26px; }
+        html[data-theme="trek"] .filters { border: 2px solid #99ccff; border-left: 18px solid #99ccff; border-radius: 24px; }
+        html[data-theme="trek"] .card { border: 2px solid #ff9900; border-left: 14px solid #ff9900; border-radius: 24px 12px 12px 24px; }
+        html[data-theme="trek"] .card.expert { border-color: #99ccff; border-left: 14px solid #99ccff; }
+        html[data-theme="trek"] .card h2 { color: #ff9900; text-transform: uppercase; letter-spacing: 0.6px; }
+        html[data-theme="trek"] .card.expert h2 { color: #99ccff; }
+        html[data-theme="trek"] textarea { background: #030408; color: #f0f6ff; border-color: #334466; }
+        html[data-theme="trek"] .btn, html[data-theme="trek"] .pole-chip.active, html[data-theme="trek"] .theme-pill.active { background: #ff9900; color: #000; font-weight: 900; }
+        html[data-theme="trek"] .btn-upsell { background: #cc99cc; color: #000; font-weight: 900; }
+        html[data-theme="trek"] .section-title { color: #cc99cc; border-bottom: 3px solid #cc99cc; text-transform: uppercase; letter-spacing: 2px; }
     </style>
     <script>try{var t=JSON.parse(localStorage.getItem('fp_theme')||'null')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t;}catch(e){}</script>
 </head>
 <body>
 
+    <header class="free-topbar">
+        <div class="free-brand-left">
+            <div class="free-logo-pill">free</div>
+            <span class="proxi-tag"><span class="live-dot"></span> Proxi OS</span>
+            <span class="hud-clock" id="hudClock">--:--:--</span>
+            <span class="niel-quote" id="nielQuote" onclick="nextNielQuote()" title="Cliquez pour changer la devise">💡 « Il a Free, il a tout compris » — Sans engagement, prix juste.</span>
+        </div>
+        <div class="theme-switcher" id="themeBar" aria-label="Sélecteur de thème">
+            <button class="theme-pill" data-t="light" onclick="applyTheme('light')">☀️ Free.fr</button>
+            <button class="theme-pill" data-t="dark" onclick="applyTheme('dark')">🌙 Ultra Dark</button>
+            <button class="theme-pill" data-t="niel" onclick="applyTheme('niel')">💻 Niel 42</button>
+            <button class="theme-pill" data-t="sw" onclick="applyTheme('sw')">⚔️ Star Wars</button>
+            <button class="theme-pill" data-t="mando" onclick="applyTheme('mando')">🛡️ Mando</button>
+            <button class="theme-pill" data-t="trek" onclick="applyTheme('trek')">🖖 Star Trek</button>
+        </div>
+    </header>
+
     <div class="header">
         <div class="brand">
-            <!-- AVATAR SVG VADOR / CASQUE IMPÉRIAL VERSION FREE -->
-            <svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vador Free Proxi">
-                <defs>
-                    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stop-color="#3a0509"/>
-                        <stop offset="100%" stop-color="#07090e"/>
-                    </radialGradient>
-                    <linearGradient id="helmetDome" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#333942"/>
-                        <stop offset="50%" stop-color="#14171d"/>
-                        <stop offset="100%" stop-color="#050608"/>
-                    </linearGradient>
-                </defs>
-                <circle cx="60" cy="60" r="58" fill="url(#bgGlow)"/>
-                <!-- Halo Sabre Laser Rouge Free -->
-                <circle cx="60" cy="60" r="52" fill="none" stroke="#e1000f" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.7"/>
-                <!-- Dôme Casque Vador -->
-                <path d="M60 15 C32 15 20 38 17 70 L28 76 L32 52 C35 38 45 30 60 30 C75 30 85 38 88 52 L92 76 L103 70 C100 38 88 15 60 15 Z" fill="url(#helmetDome)" stroke="#475569" stroke-width="1.2"/>
-                <!-- Crête centrale Rouge Free -->
-                <path d="M58 15 L62 15 L63 45 L57 45 Z" fill="#e1000f"/>
-                <!-- Masque facial -->
-                <path d="M30 50 L90 50 L85 86 L60 98 L35 86 Z" fill="#0f1319" stroke="#334155" stroke-width="1.2"/>
-                <!-- Optiques Rouges Free -->
-                <path d="M35 55 Q46 50 54 57 Q46 64 35 59 Z" fill="#e1000f"/>
-                <path d="M85 55 Q74 50 66 57 Q74 64 85 59 Z" fill="#e1000f"/>
-                <!-- Grille Respirateur Triangulaire -->
-                <polygon points="60,62 46,84 74,84" fill="#1e242d" stroke="#e1000f" stroke-width="1.2"/>
-                <line x1="60" y1="64" x2="60" y2="83" stroke="#94a3b8" stroke-width="1.5"/>
-                <line x1="55" y1="69" x2="55" y2="83" stroke="#94a3b8" stroke-width="1.2"/>
-                <line x1="65" y1="69" x2="65" y2="83" stroke="#94a3b8" stroke-width="1.2"/>
-                <!-- Badge FREE Corporate -->
-                <rect x="34" y="96" width="52" height="15" rx="4" fill="#e1000f"/>
-                <text x="60" y="107" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="900" font-size="10" letter-spacing="1.5">FREE</text>
-            </svg>
-            <h1>Outil de Réponses Rapides — Cockpit Proxi</h1>
+            <div id="avatarSlot" onclick="cycleTheme()" style="cursor:pointer" title="Cliquez sur l'emblème pour changer d'univers"><svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="58" fill="#e1000f"/><circle cx="60" cy="60" r="50" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 4" opacity="0.5"/><text x="60" y="68" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="900" font-style="italic" font-size="34" letter-spacing="-1">free</text><rect x="30" y="84" width="60" height="16" rx="8" fill="#111111"/><text x="60" y="95" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="800" font-size="9" letter-spacing="1.5">PROXI</text></svg></div>
+            <div>
+                <h1 id="mainTitle">Cockpit Réponses Rapides <span class="accent">Free Proxi</span></h1>
+                <p id="subTitle">7 Pôles Relation Client · Assembleur Multi-Trames · Procédures Officielles Vérifiées (11/2026)</p>
+            </div>
         </div>
-        <p>Base intégrale classée en 7 Pôles Relation Client + Variables & Horloge Dynamiques</p>
+        <div class="hud-stats">
+            <div class="stat-pill"><small>Base Trames</small><strong id="statTotal">113</strong></div>
+            <div class="stat-pill"><small>Modèles Expert</small><strong id="statExpert">24</strong></div>
+            <div class="stat-pill"><small>Copies Session</small><strong id="statCopies">0</strong></div>
+            <div class="stat-pill"><small>Mode Horaire</small><strong id="statMode">Auto</strong></div>
+        </div>
     </div>
 
     <!-- BARRE DYNAMIQUE TEMPS RÉEL (SANS N° / RELAIS) -->
@@ -427,7 +746,14 @@
         <button class="chip" onclick="deepSearch()" title="Chercher cette saisie sur Assistance Free">🌐 Chercher Site Free</button>
         <button id="favOnly" class="chip" onclick="toggleFavOnly()">⭐ Favoris</button>
         <button id="compactBtn" class="chip" onclick="toggleCompact()" title="Réduire la hauteur des cartes pour écran partagé">📐 Vue Compacte</button>
-        <button id="themeBtn" class="chip" onclick="cycleTheme()" title="Changer de thème"></button>
+        <select id="themeSelect" class="chip" onchange="applyTheme(this.value)" title="Choisir le thème visuel" aria-label="Choisir le thème">
+            <option value="light">🎨 Thème : ☀️ Free.fr (Clair)</option>
+            <option value="dark">🎨 Thème : 🌙 Sombre (OLED)</option>
+            <option value="niel">🎨 Thème : 💻 Xavier Niel / 42</option>
+            <option value="sw">🎨 Thème : ⚔️ Star Wars (Empire)</option>
+            <option value="mando">🎨 Thème : 🛡️ The Mandalorian</option>
+            <option value="trek">🎨 Thème : 🖖 Star Trek (LCARS)</option>
+        </select>
     </div>
 
     <nav class="poles" id="poleBar" aria-label="Pôles"></nav>
@@ -446,10 +772,68 @@
         <label class="btn-mini" style="cursor:pointer">📥 Restaurer<input type="file" accept=".json" style="display:none" onchange="restoreBackup(this.files[0])"></label>
     </details>
 
+    <details class="memo-panel">
+        <summary>📌 Mémo Express Certifié (Adresses Postales Officielles, Niveaux Réclamation, Numéros & Délais — Cliquez pour copier)</summary>
+        <div class="memo-grid">
+            <div class="memo-card">
+                <b>📬 Réclamation 1er Niveau (Écrit obligatoire)</b>
+                <span>Formulaire Espace Abonné imprimé + pièces :<br>Free – Service Abonnés – 75371 Paris Cedex 08</span>
+                <button onclick="copyRaw('Free – Service Abonnés – 75371 Paris Cedex 08')">📋 Copier l'adresse</button>
+            </div>
+            <div class="memo-card">
+                <b>⚖️ Recours 2nd Niveau (SNC) & 3e Niveau</b>
+                <span>Après 1er niveau écrit (ou 1 mois sans réponse) :<br>FREE SERVICE NATIONAL CONSOMMATEUR – 75371 PARIS CEDEX 08<br>Puis Médiateur des communications électroniques.</span>
+                <button onclick="copyRaw('FREE SERVICE NATIONAL CONSOMMATEUR – 75371 PARIS CEDEX 08')">📋 Copier SNC</button>
+            </div>
+            <div class="memo-card">
+                <b>💶 ODR Frais Résiliation Ancien FAI (100€ / 50€)</b>
+                <span>Sous 2 mois par courrier (facture clôture + mail Free) :<br>Offre préférentielle Freebox – 75371 Paris Cedex 08</span>
+                <button onclick="copyRaw('Offre préférentielle Freebox – 75371 Paris Cedex 08')">📋 Copier ODR</button>
+            </div>
+            <div class="memo-card">
+                <b>👤 Changement Nom / Titulaire (Courrier)</b>
+                <span>Mobile : Free Mobile – Service Abonné – 75371 PARIS Cedex 08<br>Freebox : Free Modification nom – 75371 Paris Cedex 08</span>
+                <button onclick="copyRaw('Free Mobile – Service Abonné – 75371 PARIS Cedex 08')">📋 Copier Mobile</button>
+            </div>
+            <div class="memo-card">
+                <b>📦 Retour Matériel / Accessoire & Résiliation</b>
+                <span>Accessoire oublié : Freebox Retour – C/O Orium – 11 Rue de Lisbonne – 93110 Rosny-sous-Bois<br>LRAR Résil FBX : PUBLIDISPATCH / FREE RSL – BP 40090 – 91003 Évry Cedex</span>
+                <button onclick="copyRaw('Freebox Retour – C/O Orium – 11 Rue de Lisbonne – 93110 Rosny-sous-Bois')">📋 Copier Orium</button>
+            </div>
+            <div class="memo-card">
+                <b>🛡️ Assurance Mobile Free (AXA) & Rétractation</b>
+                <span>1er niv. : Formulaire en ligne (ID + n° 12 chiffres)<br>2nd niv. : AXA – Service Réclamations – 313 Terrasses de l'Arche – 92727 Nanterre Cedex<br>Rétract. Mobile acheté : Free Service Mobile – 91818 Corbeil-Essonnes Cedex</span>
+                <button onclick="copyRaw('AXA – Direction des Partenariats IARD – Service Réclamations – 313 Terrasses de l\'Arche – 92727 Nanterre Cedex')">📋 Copier AXA</button>
+            </div>
+        </div>
+    </details>
     <nav class="links" id="officialLinks" aria-label="Liens officiels Free"></nav>
 
     <div id="counter" class="counter"></div>
     <div class="grid" id="cardsContainer"></div>
+    <div class="composer-dock" id="composerDock">
+        <h4>
+            <span>🧩 Assemblage Multi-Trames (<span id="compCount">0</span>)</span>
+            <span style="display:flex;gap:6px">
+                <button class="btn-mini" onclick="clearComposer()" style="padding:3px 8px;font-size:.74rem">Vider</button>
+                <button class="btn-mini" onclick="toggleComposer(false)" style="padding:3px 8px;font-size:.74rem">✖</button>
+            </span>
+        </h4>
+        <textarea id="composerArea" placeholder="Empilez plusieurs réponses ici avec le bouton '+ 🧩' de chaque carte..."></textarea>
+        <div style="display:flex;gap:6px">
+            <button class="btn" onclick="copyComposer(false)" style="padding:8px;font-size:.83rem">⚡ Copier l'assemblage</button>
+            <button class="btn-upsell" onclick="copyComposer(true)" style="padding:8px;font-size:.78rem">+ 🎁 Fidélité</button>
+        </div>
+    </div>
+    <div class="theme-fab" id="themeFab" aria-label="Barre de thèmes flottante">
+        <span>🎨 Thèmes :</span>
+        <button class="theme-pill" data-t="light" onclick="applyTheme('light')">☀️ Free.fr</button>
+        <button class="theme-pill" data-t="dark" onclick="applyTheme('dark')">🌙 Sombre</button>
+        <button class="theme-pill" data-t="niel" onclick="applyTheme('niel')">💻 Niel 42</button>
+        <button class="theme-pill" data-t="sw" onclick="applyTheme('sw')">⚔️ Star Wars</button>
+        <button class="theme-pill" data-t="mando" onclick="applyTheme('mando')">🛡️ Mando</button>
+        <button class="theme-pill" data-t="trek" onclick="applyTheme('trek')">🖖 Star Trek</button>
+    </div>
     <div class="toast" id="toast"></div>
 
     <div class="modal-backdrop" id="qcModal" onclick="if(event.target===this)this.classList.remove('open')">
@@ -619,7 +1003,7 @@
                 cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
                 title: "Ticket Incident Fibre 2 (Manipulation jarretière optique)",
                 expert: false,
-                text: `Effectivement, nous ne parvenons plus à joindre votre Freebox à distance. Même si rien n'a été touché dans votre installation, je vous invite à effectuer cette manipulation précise :\n1. Débranchez délicatement le câble Fibre (entre la Freebox et le boîtier mural PTO) en faisant attention au petit clip de sécurité sur l'embout.\n2. Détendez complètement ce câble fin et assurez-vous qu'aucun meuble ou objet n'exerce une pression, une tension ou un pincement dessus.\n3. Rebranchez-le bien droit jusqu'au "clic", puis redémarrez électriquement votre Freebox.\n\nPouvez-vous m'indiquer si la Freebox dépasse l'étape de blocage après cela ?`
+                text: `Effectivement, nous ne parvenons plus à joindre votre Freebox à distance. Même si rien n'a été touché dans votre installation, je vous invite à effectuer cette manipulation précise :\n1. Débranchez délicatement le câble Fibre (entre la Freebox et le boîtier mural PTO) en faisant attention au petit clip de sécurité sur l'embout.\n2. Détendez complètement ce câble fin et assurez-vous qu'aucun meuble ou objet n'exerce une pression, une tension ou un pincement dessus.\n3. Rebranchez-le bien droit jusqu'au "clic", puis redémarrez électriquement votre Freebox.\n\nPouvez-vous m'indiquer si la Freebox dépasse l'étape de blocage après cela ?\n\nBelle journée à vous 😊`
             },
             {
                 cat: "2. 🛠️ Diagnostic & Dépannage Réseau Fixe (Fibre / xDSL)",
@@ -689,13 +1073,13 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "⭐ [Expert] Ouverture de ports (NAT/PAT) & IP Full-Stack",
                 expert: true,
-                text: `Pour ouvrir les ports de votre Freebox (pour une console de jeux, un serveur NAS ou des caméras de surveillance) et optimiser votre connexion :\n\n1. Vérification de votre adresse IP (IP Full-Stack) : Par défaut, l'adresse IPv4 peut être partagée entre plusieurs abonnés, ce qui limite la plage de ports disponibles. Pour obtenir une adresse IP dédiée gratuitement avec tous les ports (1 à 65535) :\n   * Rendez-vous sur votre Espace Abonné Freebox > rubrique Ma Freebox > Demander une adresse IP fixe V4 full-stack.\n   * Redémarrez électriquement votre Freebox Server après un délai de 30 minutes pour appliquer le changement.\n2. Redirection des ports sur Freebox OS :\n   * Connectez-vous à l'interface de gestion de votre box via un navigateur web sur http://mafreebox.freebox.fr.\n   * Allez dans Paramètres de la Freebox > mode Avancé > Gestion des ports.\n   * Cliquez sur Ajouter une redirection et renseignez l'IP locale de votre équipement, le protocole (TCP/UDP) et les numéros de ports souhaités. (Astuce : pensez à fixer l'adresse IP locale de votre appareil dans l'onglet DHCP > Baux statiques au préalable).\n\nDites-moi si vous avez besoin d'aide sur un numéro de port en particulier !\n\nBonne journée,`
+                text: `Pour ouvrir les ports de votre Freebox (console, NAS, caméra) et optimiser votre connexion :\n\n1. Activer l'IP Full-Stack (gratuite) : Par défaut, l'IPv4 est partagée (plage de ports limitée). Pour obtenir tous les ports (1 à 65535) :\n   * Allez sur votre Espace Abonné Freebox > Ma Freebox > Demander une adresse IP fixe V4 full-stack.\n   * Patientez 30 minutes puis redémarrez électriquement votre Freebox Server.\n2. Rediriger les ports sur Freebox OS :\n   * Rendez-vous sur http://mafreebox.freebox.fr > Paramètres de la Freebox > mode Avancé > Gestion des ports.\n   * Cliquez sur Ajouter une redirection et indiquez l'IP locale de l'appareil, le protocole (TCP/UDP) et les ports souhaités (pensez à fixer l'IP locale dans DHCP > Baux statiques au préalable).\n\nDites-moi si vous avez besoin d'aide sur un port précis !\n\nBelle journée à vous 😊`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "⭐ [Expert] Passage de la Freebox en Mode Bridge (Routeur externe)",
                 expert: true,
-                text: `Si vous souhaitez utiliser votre propre routeur ou système Wi-Fi Mesh derrière la Freebox, je vous recommande de passer votre Freebox Server en Mode Bridge afin d'éviter les conflits réseau (double NAT).\n\nProcédure d'activation :\n1. Connectez-vous à votre interface de gestion sur http://mafreebox.freebox.fr (ou via l'application mobile Free > Plus > Mode de réseau).\n2. Allez dans Paramètres de la Freebox > mode Avancé > Mode réseau.\n3. Remplacez Mode routeur par Mode bridge, validez sur OK, puis redémarrez votre Freebox Server.\n\n⚠️ Points d'attention importants en Mode Bridge :\n* Le Wi-Fi de la Freebox Server (ainsi que des éventuels Répéteurs Free) et sa fonction routeur/DHCP sont désactivés : c'est votre routeur personnel qui doit gérer l'ensemble du réseau.\n* Branchez le port WAN de votre routeur personnel sur l'un des ports Ethernet de la Freebox.\n* Si vous avez un boîtier TV Freebox Player Révolution ou Devialet, il doit rester branché directement sur la Freebox Server pour conserver les flux TV (le Player Pop et l'Apple TV fonctionnent quant à eux très bien directement derrière votre routeur personnel).\n\nJe reste disponible si vous avez besoin de précisions pour le branchement de votre équipement.\n\nBonne journée,`
+                text: `Pour utiliser votre propre routeur ou système Wi-Fi Mesh sans conflit réseau (double NAT), passez votre Freebox Server en Mode Bridge :\n\n1. Rendez-vous sur http://mafreebox.freebox.fr (ou dans l'application Free > Plus > Mode de réseau).\n2. Allez dans Paramètres de la Freebox > mode Avancé > Mode réseau.\n3. Sélectionnez Mode bridge, validez sur OK, puis redémarrez le Freebox Server.\n\n⚠️ Points d'attention en Mode Bridge :\n* Le Wi-Fi de la Freebox (et des Répéteurs Free) ainsi que le serveur DHCP sont désactivés : votre routeur personnel gère alors tout le réseau.\n* Reliez le port WAN de votre routeur à un port Ethernet de la Freebox.\n* Les Players Révolution et Devialet doivent rester branchés sur le Server Freebox (le Player Pop et l'Apple TV fonctionnent directement sur votre routeur).\n\nJe reste disponible en cas de besoin.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -785,7 +1169,7 @@
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
                 title: "Reset Répéteur Wi-Fi (Voyant rouge clignotant / WPA1)",
                 expert: false,
-                text: `Pour réinitialiser et réassocier votre Répéteur Wi-Fi :\n1. Débranchez électriquement le répéteur.\n2. Maintenez le bouton Reset (situé à l'arrière) enfoncé, rebranchez électriquement le répéteur tout en gardant le bouton appuyé pendant 15 secondes, puis relâchez lorsque le voyant devient orange fixe.\n3. Ouvrez l'application Free > Accueil > Mes Équipements > Ajouter un équipement > Répéteur, puis scannez le QR Code situé sous le répéteur.\n\nSi le voyant reste rouge clignotant malgré cette manipulation, revenez vers moi 😉.`
+                text: `Pour réinitialiser et réassocier votre Répéteur Wi-Fi :\n1. Débranchez électriquement le répéteur.\n2. Maintenez le bouton Reset (situé à l'arrière) enfoncé, rebranchez électriquement le répéteur tout en gardant le bouton appuyé pendant 15 secondes, puis relâchez lorsque le voyant devient orange fixe.\n3. Ouvrez l'application Free > Accueil > Mes Équipements > Ajouter un équipement > Répéteur, puis scannez le QR Code situé sous le répéteur.\n\nSi le voyant reste rouge clignotant malgré cette manipulation, revenez vers moi 😉.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "3. 📶 Débit, Wi-Fi & Écosystème Local (LAN)",
@@ -889,7 +1273,7 @@
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
                 title: "⭐ [Expert] Configuration eSIM & Vol / Perte de carte SIM",
                 expert: true,
-                text: `Voici la marche à suivre selon votre besoin concernant votre carte SIM Free Mobile :\n\nOption A : Passer sur une eSIM (carte SIM virtuelle)\n1. Depuis votre Espace Abonné Mobile > Mon Compte > Ma carte SIM, cliquez sur Commander une nouvelle SIM et sélectionnez eSIM.\n2. Une fois la commande validée, flashez le QR Code affiché à l'écran avec l'appareil photo de votre téléphone (connecté en Wi-Fi) et saisissez le code de confirmation. (L'activation d'une eSIM désactive automatiquement votre ancienne carte SIM physique).\n\nOption B : En cas de perte ou de vol de votre téléphone\n1. Bloquez immédiatement votre ligne : Connectez-vous à votre Espace Abonné Mobile > Mon Compte > Ma carte SIM > cliquez sur Déclarer ma carte SIM perdue ou volée (vous pouvez demander l'expédition d'une nouvelle SIM physique au même endroit ou la retirer sur une Borne Free : https://www.free.fr/boutiques/).\n2. Obtenez votre numéro IMEI (pour le dépôt de plainte) : Vous le trouverez sur votre facture d'achat ou sur la boîte d'origine du téléphone. Dès que vous nous transmettez le récépissé de dépôt de plainte comportant cet IMEI, nous inscrivons le téléphone sur la liste noire nationale.\n\nJe reste à votre entière disposition pour vous accompagner dans cette démarche.\n\nBonne journée,`
+                text: `Voici la marche à suivre concernant votre carte SIM Free Mobile :\n\nOption A : Passer sur une eSIM (SIM virtuelle)\n1. Sur votre Espace Abonné Mobile > Mon Compte > Ma carte SIM, cliquez sur Commander une nouvelle SIM > eSIM.\n2. Connectez votre téléphone en Wi-Fi, flashez le QR Code affiché et saisissez le code de confirmation (l'ancienne SIM physique sera automatiquement désactivée).\n\nOption B : Perte ou vol de votre téléphone\n1. Suspendez la ligne : Sur votre Espace Abonné Mobile > Mon Compte > Ma carte SIM > Déclarer ma carte SIM perdue ou volée (commandez votre nouvelle SIM au même endroit ou retirez-la sur une Borne Free : https://www.free.fr/boutiques/).\n2. Blocage IMEI : Récupérez votre numéro IMEI (sur la boîte ou facture d'achat) pour votre dépôt de plainte. Dès réception du récépissé de plainte mentionnant l'IMEI, nous bloquerons l'appareil sur la liste noire nationale.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
@@ -901,7 +1285,7 @@
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
                 title: "Activation 5G+ (5G SA) & Pas de 5G sur un téléphone compatible",
                 expert: false,
-                text: `Pour profiter de la 5G+ (aussi appelée 5G SA, un réseau 5G complet et indépendant de la 4G), voici les vérifications à effectuer :\n\n1. Vérifiez que votre téléphone est compatible 5G, que l’option est activée dans ses réglages et que sa dernière mise à jour logicielle est installée.\n2. Vérifiez que vous êtes dans une zone couverte par le réseau 5G (3,5 GHz) de Free, grâce à la carte de couverture.\n3. Depuis votre Espace Abonné Mobile, rubrique Mes options, activez gratuitement la 5G+ (ou 5G SA).\n4. Après quelques minutes, activez puis désactivez le mode Avion de votre téléphone, ou redémarrez-le.\n\nSelon votre téléphone :\n* iPhone compatible (à partir de l’iPhone 15) : Réglages > Données cellulaires > Options > Voix et données, sélectionnez 5G Auto puis activez 5G SA et Voix sur 5G Standalone.\n* Samsung et Google Pixel : aucune action supplémentaire, la bascule vers la 5G+ est automatique.\n* Autres modèles Android : activez manuellement la 5G+ depuis les paramètres réseau.\n\nSi votre téléphone est Dual-SIM, assurez-vous d’avoir inséré la carte SIM dans l’emplacement qui prend en charge la 5G (généralement le tiroir SIM 1).\n\nSi vous ne captez toujours pas la 5G après ces étapes, dites-le-moi et nous regarderons cela ensemble.\n\nBelle journée à vous 😊`
+                text: `Pour profiter de la 5G+ (5G SA) sur le réseau Free Mobile, voici les vérifications à effectuer :\n\n1. Assurez-vous que votre téléphone est compatible 5G, à jour, et situé en zone couverte (SIM insérée dans le tiroir SIM 1 sur un modèle Dual-SIM).\n2. Sur votre Espace Abonné Mobile > Mes options, activez gratuitement l'option 5G+ (5G SA).\n3. Patientez quelques minutes, puis redémarrez votre téléphone (ou passez en mode Avion 10 secondes).\n\nRéglages selon votre appareil :\n* iPhone (15 et +) : Réglages > Données cellulaires > Options > Voix et données > 5G Auto, puis activez 5G SA et Voix sur 5G Standalone.\n* Samsung & Google Pixel : la bascule vers la 5G+ est automatique.\n* Autres Android : activez la 5G+ dans les paramètres réseau.\n\nDites-moi si la 5G s'affiche bien après ces étapes !\n\nBelle journée à vous 😊`
             },
             {
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
@@ -913,7 +1297,7 @@
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
                 title: "Manipulations Réseau : Recherche manuelle & Réinitialisation (iPhone/Android)",
                 expert: false,
-                text: `Aucun incident d'antenne n'étant déclaré sur votre secteur, je vous invite à effectuer ces manipulations de rafraîchissement réseau sur votre téléphone :\n1. Recherche manuelle d'antenne : Allez dans Réglages/Paramètres > Données cellulaires (ou Réseaux mobiles) > Sélection du réseau, décochez Automatique et testez les réseaux Free affichés (même s'il est écrit "Interdit"), puis remettez en Automatique.\n2. Réinitialisation des réglages réseau :\n   * Sur iPhone : Allez dans Réglages > Général > Transférer ou réinitialiser l'iPhone > Réinitialiser > Réinitialiser les réglages réseau.\n   * Sur Android : Allez dans Paramètres > Gestion globale > Réinitialisation > Réinitialiser les paramètres réseau.\n(Note : cela redémarrera le téléphone et remettra à zéro les connexions Wi-Fi/APN enregistrées).\n\nPouvez-vous me tenir au courant du résultat ?`
+                text: `Aucun incident d'antenne n'étant déclaré sur votre secteur, je vous invite à effectuer ces manipulations de rafraîchissement réseau sur votre téléphone :\n1. Recherche manuelle d'antenne : Allez dans Réglages/Paramètres > Données cellulaires (ou Réseaux mobiles) > Sélection du réseau, décochez Automatique et testez les réseaux Free affichés (même s'il est écrit "Interdit"), puis remettez en Automatique.\n2. Réinitialisation des réglages réseau :\n   * Sur iPhone : Allez dans Réglages > Général > Transférer ou réinitialiser l'iPhone > Réinitialiser > Réinitialiser les réglages réseau.\n   * Sur Android : Allez dans Paramètres > Gestion globale > Réinitialisation > Réinitialiser les paramètres réseau.\n(Note : cela redémarrera le téléphone et remettra à zéro les connexions Wi-Fi/APN enregistrées).\n\nPouvez-vous me tenir au courant du résultat ?\n\nBelle journée à vous 😊`
             },
             {
                 cat: "5. 📱 Univers Free Mobile (Réseau, SIM, Messagerie & Roaming)",
@@ -977,19 +1361,19 @@
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Tarif forfait mobile après passage sur Freebox Pop (Avantage Pop & ligne supplémentaire)",
                 expert: false,
-                text: `Je comprends votre interrogation concernant le tarif de votre forfait mobile suite à votre passage sur une offre Freebox Pop.\n\nLe tarif de votre forfait mobile dépend de votre formule Freebox et de son origine (nouvel abonnement ou migration depuis un ancien abonnement, comme l’offre Pop Fidélité). Voici ce qu’il faut retenir :\n\n* Si votre ligne mobile principale est déjà rattachée à votre offre, elle bénéficie de la réduction permanente de votre formule, par exemple le {{NOM_5G}} à 15,99 € / mois (au lieu de 19,99 € / mois) avec data illimitée. Le tarif de 9,99 € / mois ne peut pas être appliqué sur une ligne mobile existante.\n* Si vous souscrivez une nouvelle ligne mobile supplémentaire (pour un proche par exemple), celle-ci peut profiter de l’avantage Pop à 9,99 € / mois pendant un an, puis 15,99 € / mois par la suite.\n\nVous pouvez retrouver l’ensemble des conditions et détails tarifaires sur nos pages officielles :\n\n* Fiches d’information et tarifs Freebox :\nhttps://adsl.free.fr/cgv/fiches-informations-standardisees.html\n* Fiches d’information et tarifs Mobile :\nhttps://mobile.free.fr/fiches-informations-standardisees.html\n\nJe reste à votre disposition si vous souhaitez faire le point sur vos lignes ou ajouter un forfait secondaire.\n\nBelle journée à vous 😊`
+                text: `Voici le fonctionnement tarifaire de votre forfait mobile suite au passage sur une offre Freebox Pop (ou Pop Fidélité) :\n\n* Ligne mobile déjà rattachée : Elle bénéficie de la remise permanente avec data illimitée à 15,99 €/mois (au lieu de 19,99 €/mois) sur le {{NOM_5G}}. Le tarif promotionnel de 9,99 €/mois pendant 1 an ne s'applique pas rétroactivement sur une ligne existante issue d'une offre fidélité.\n* Nouvelle ligne mobile supplémentaire : Toute nouvelle ligne souscrite peut profiter de l'avantage Pop à 9,99 €/mois pendant 1 an (puis 15,99 €/mois).\n\nRetrouvez le détail complet sur nos fiches d'information standardisées :\n* Freebox : https://adsl.free.fr/cgv/fiches-informations-standardisees.html\n* Mobile : https://mobile.free.fr/fiches-informations-standardisees.html\n\nJe reste disponible pour faire le point sur vos lignes.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Changement de forfait mobile (Forfait 2€ / Free 5G+ / Free Max)",
                 expert: false,
-                text: `Vous pouvez changer de forfait en autonomie depuis votre Espace Abonné Mobile ou l’app Free : Mon compte > Mon offre > Changer de forfait, puis validez en cliquant sur Continuer.\n\nRappel des tarifs mensuels :\n* Forfait 2€ : 2 €/mois.\n* {{NOM_5G}} : 19,99 €/mois (15,99 €/mois ou 9,99 €/mois selon la formule Freebox à laquelle il est rattaché).\n* Forfait Free Max : 29,99 €/mois (19,99 €/mois s’il est rattaché à une Freebox).\n\n* Du Forfait 2€ vers le {{NOM_5G}} (ou Free Max) : le changement est effectif sous 24h et modifie votre date de facturation (par exemple, un passage le 20 prend effet le 21, qui devient votre nouvelle date de facturation). La première facture comprend les jours utilisés sur l’ancien forfait ainsi que le mois d’avance du nouveau. Si du hors forfait a été réalisé avant la remise à zéro, une dernière facture du Forfait 2€ est émise à l’ancienne date anniversaire. Pensez à redémarrer votre téléphone ensuite pour profiter de tous les services compatibles.\n* Du {{NOM_5G}} ou Free Max vers le Forfait 2€ : possible après trois mois complets et réglés. L’opération est facturée 10€ sur la facture du mois en cours et a lieu à la date de facturation.\n* Du Forfait Free Max vers le {{NOM_5G}} : opération facturée 10€, à la date de facturation.\n\nBelle journée à vous 😊`
+                text: `Vous pouvez changer de forfait depuis votre Espace Abonné Mobile ou l'application Free : Mon compte > Mon offre > Changer de forfait.\n\nRappel des tarifs :\n* Forfait 2 € : 2 €/mois (0 € avec avantage Freebox).\n* {{NOM_5G}} : 19,99 €/mois (15,99 € ou 9,99 €/mois avec avantage Freebox).\n* Forfait Free Max : 29,99 €/mois (19,99 €/mois avec Freebox).\n\nConditions de changement :\n* Du Forfait 2 € vers {{NOM_5G}} / Free Max : Gratuit et effectif sous 24h (redémarrez votre téléphone le lendemain). Votre date de facturation s'aligne sur le jour d'activation.\n* Du {{NOM_5G}} / Free Max vers Forfait 2 € : Possible après 3 mois d'ancienneté (facturé 10 €, effectif à la prochaine date anniversaire de facturation).\n* De Free Max vers {{NOM_5G}} : Facturé 10 €, effectif à la date de facturation.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
-                title: "Modification du nom ou du titulaire d’un abonnement mobile (Pièces à fournir)",
+                title: "Modification du nom ou du titulaire d’un abonnement (Pièces & Adresses)",
                 expert: false,
-                text: `Pour modifier le nom, le titulaire ou l’état civil d’un abonnement Free Mobile, une demande accompagnée de justificatifs est nécessaire selon votre situation :\n\n* Changement de nom (mariage/divorce, pacs/dépacs) : lettre explicative mentionnant les identifiants de l’abonnement, accompagnée du justificatif d’état civil correspondant.\n* Changement de titulaire suite à un décès : acte de décès ou certificat d’hérédité (ou acte notarié), RIB au nom du nouveau titulaire et copie de sa pièce d’identité.\n* Société ou association : lettre explicative avec les identifiants de l’abonnement et extrait Kbis (société), copie JORF ou attestation préfectorale (association), ou extrait d’immatriculation au répertoire des métiers (artisan).\n\nAvant l’envoi des documents, pensez à mettre à jour vos coordonnées bancaires, votre adresse postale, votre e-mail et votre numéro de mobile de contact depuis votre Espace Abonné Mobile.\n\nÀ noter : si le compte principal est rattaché à un abonnement Freebox, la mise à jour du nom ne s’applique qu’à l’abonnement mobile.\n\nBelle journée à vous 😊`
+                text: `Pour modifier le nom, le titulaire ou l’état civil de votre abonnement, la demande s'effectue uniquement par courrier postal accompagnée des justificatifs suivants :\n\n* Changement de nom (mariage/divorce, pacs/dépacs, état civil) : copie d'une pièce d'identité à jour, justificatif d'état civil et lettre explicative mentionnant vos identifiants.\n* Changement de titulaire suite à un décès : acte de décès ou certificat d’hérédité, RIB au nom du nouveau titulaire, copie de sa pièce d’identité et lettre explicative.\n* Société ou association : lettre explicative avec identifiants, pièce d'identité du dirigeant et extrait Kbis (société), copie JORF/attestation préfectorale (association) ou extrait répertoire des métiers.\n\nMettez d'abord à jour vos coordonnées (IBAN, e-mail, téléphone) sur votre Espace Abonné, puis envoyez le dossier à :\n* Pour un forfait Mobile : Free Mobile – Service Abonné – 75371 PARIS Cedex 08\n* Pour une Freebox : Free Modification nom – 75371 Paris Cedex 08\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
@@ -1043,7 +1427,7 @@
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
                 title: "Vigilance Phishing : Faux e-mails, SMS ou appels Free (Adresses officielles)",
                 expert: false,
-                text: `Merci pour votre vigilance. Des tentatives de phishing (hameçonnage) se font régulièrement passer pour Free par e-mail, SMS ou appel téléphonique. Voici les bons réflexes :\n\n* Free ne vous demande jamais vos identifiants, mots de passe ou coordonnées bancaires par e-mail, SMS ou téléphone. Vos coordonnées bancaires n’apparaissent jamais en clair dans nos messages.\n* Les e-mails Free Mobile sont envoyés depuis freemobile@free-mobile.fr.\n* Les e-mails Freebox sont envoyés depuis info@freetelecom.fr, info-free@freetelecom.fr ou info-abonne@freetelecom.fr.\n* Les e-mails de l’assistance sont envoyés depuis freeproxi@freetelecom.fr, messagerie@freetelecom.fr, enquete@assistance.free.fr ou noreply@assistance.free.fr.\n* Les liens présents dans les SMS Free Mobile commencent par m.free.fr.\n\nEn cas de doute, ne cliquez sur aucun lien : connectez-vous directement à votre Espace Abonné (https://mobile.free.fr/account ou https://subscribe.free.fr/login/). Pour les abonnés mobile, les derniers e-mails et SMS reçus de notre part sont consultables dans la rubrique Nos communications > Communications de Free.\n\nSi vous avez été visé par une tentative de phishing, vous pouvez la signaler sur signal-spam.fr et cybermalveillance.gouv.fr.\n\nBelle journée à vous 😊`
+                text: `Merci pour votre vigilance face aux tentatives d'hameçonnage (phishing). Voici nos règles de sécurité officielles :\n\n* Free ne demande jamais vos mots de passe ou coordonnées bancaires par e-mail, SMS ou téléphone.\n* Expéditeurs officiels Free Mobile : freemobile@free-mobile.fr (liens SMS commençant par m.free.fr).\n* Expéditeurs officiels Freebox : info@freetelecom.fr, info-free@freetelecom.fr, info-abonne@freetelecom.fr.\n* Expéditeurs Assistance : freeproxi@freetelecom.fr, messagerie@freetelecom.fr, enquete@assistance.free.fr, noreply@assistance.free.fr.\n\nEn cas de doute, ne cliquez sur aucun lien : connectez-vous directement sur https://mobile.free.fr/account (rubrique Nos communications > Communications de Free) ou https://subscribe.free.fr/login/. Vous pouvez signaler tout message frauduleux sur signal-spam.fr et cybermalveillance.gouv.fr.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "6. 🚀 Vie du Contrat, Déploiement Fibre & Ventes",
@@ -1101,7 +1485,7 @@
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "⭐ [Expert] ODR Frais de résiliation ancien FAI (100€) & Frais mise en service",
                 expert: true,
-                text: `Voici les modalités concernant vos demandes de remboursement :\n\n1. Frais de résiliation de votre ancien opérateur (ODR jusqu'à 100 €) :\n   * Si vous m'avez transmis votre facture de clôture ici : Je viens de la transférer directement à notre service dédié pour déclencher votre remboursement 😊.\n   * Par voie postale : Envoyez la facture de clôture de l'ancien opérateur accompagnée de votre e-mail de confirmation de souscription Freebox à l'adresse indiquée sur le coupon dans les 4 mois.\n2. Frais de mise en service Freebox :\n   * Si votre offre promotionnelle de souscription inclut leur remboursement (vérifiable au bas de votre e-mail "Confirmation de votre commande Freebox"), demandez-le directement dans votre Espace Abonné Freebox > Mon abonnement > Remboursement des frais de mise en service.\n\nBonne journée,`
+                text: `Voici les modalités officielles concernant vos demandes de remboursement :\n\n1. Frais de résiliation de votre ancien opérateur internet (jusqu'à 100 € sur Freebox / 50 € sur Box 5G) :\n   * La demande s'effectue uniquement par courrier postal dans les 2 mois suivant l'activation de votre ligne (la facture de l'ancien opérateur doit être aux mêmes nom, prénom et adresse).\n   * Joignez la copie de la facture de clôture de votre ancien opérateur mentionnant les frais de résiliation ainsi que la copie de votre e-mail de confirmation de commande Freebox (ou un courrier précisant votre identifiant fbx...).\n   * Envoyez le dossier complet à : Offre préférentielle Freebox – 75371 Paris Cedex 08.\n2. Frais de mise en service Freebox :\n   * Si votre offre promotionnelle de souscription inclut leur remboursement, demandez-le directement dans votre Espace Abonné Freebox > Mon abonnement > Remboursement des frais de mise en service.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1147,9 +1531,9 @@
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
-                title: "⭐ [Expert] Réclamation formelle, Recouvrement & Assurance AXA (Adresses)",
+                title: "⭐ [Expert] Réclamation officielle par écrit, Recours SNC & Assurance Mobile",
                 expert: true,
-                text: `Sur l'assistance technique, nous n'avons pas accès aux gestes commerciaux financiers ni aux dossiers de recouvrement. Pour formuler une réclamation écrite officielle (accompagnée de vos justificatifs et identifiants fbx...), voici les adresses postales dédiées :\n\n* Service Réclamation / Relation Consommateur :\n  Free – Service Réclamations – 75371 Paris Cedex 08\n* Service Recouvrement :\n  Free – Service Recouvrement – 75371 Paris Cedex 08\n* Assurance Mobile Free (AXA - Réclamation 2nd niveau) :\n  AXA – Direction des Partenariats IARD – Service Réclamations – 313 Terrasses de l'Arche – 92727 Nanterre Cedex\n\nBonne journée,`
+                text: `Sur l'assistance technique, nous n'avons pas accès aux gestes commerciaux ni aux dossiers de recouvrement. Toute réclamation officielle auprès de Free s'effectue uniquement par écrit par voie postale (LRAR conseillé) :\n\n1. Réclamation de 1er niveau (Formulaire officiel) :\n   * Depuis votre Espace Abonné, téléchargez et imprimez le formulaire de réclamation.\n   * Complétez-le avec votre identifiant, joignez vos justificatifs et envoyez-le à : Free – Service Abonnés – 75371 Paris Cedex 08.\n2. Recours de 2nd niveau (Service National Consommateur) :\n   * Si la réponse du 1er niveau ne vous satisfait pas (ou sans réponse sous 1 mois), écrivez avec la copie de vos échanges à : FREE SERVICE NATIONAL CONSOMMATEUR – 75371 PARIS CEDEX 08.\n3. Médiateur des communications électroniques : Saisissable en ligne après ces deux recours écrits.\n4. Assurance Mobile Free (AXA) : 1er niveau via le formulaire en ligne (identifiant mobile + n° d'adhésion à 12 chiffres), ou 2nd niveau écrit à : AXA – Direction des Partenariats IARD – Service Réclamations – 313 Terrasses de l'Arche – 92727 Nanterre Cedex.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1173,7 +1557,7 @@
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
                 title: "Retour Box 4G (Backup), Résiliation McAfee & Droit de Rétractation (14j)",
                 expert: false,
-                text: `* Renvoyer un Backup Box 4G : Allez sur votre Espace Abonné Freebox > Ma Freebox > Gérer l'option Backup > Résilier mon option Backup Internet > Télécharger pour imprimer votre étiquette de retour point relais.\n* Résilier l'option McAfee Sécurité : Allez sur votre Espace Abonné Freebox > Mon Abonnement > Protéger mes équipements avec McAfee > cliquez sur le lien de résiliation et confirmez.\n* Exercer votre droit de rétractation (sous 14 jours) :\n  - Pour une ligne Mobile : Cliquez sur le lien "Rétractation" tout en bas du site https://mobile.free.fr/ et validez depuis votre Espace Abonné.\n  - Pour une nouvelle souscription Freebox : Envoyez le formulaire de fin des Conditions Générales d'Abonnement à FREEBOX RÉTRACTATION – 6 Rue Désir Prévost – 91075 Bondoufle (et appelez le {{TEL_RESIL_FBX}}).\n  - Pour une migration Freebox : N'allez pas chercher le colis au point relais et envoyez un courrier signé avec vos identifiants à Free Rétractation – 75371 Paris Cedex 08.\n\nBonne journée,`
+                text: `* Renvoyer un Backup Box 4G : Allez sur votre Espace Abonné Freebox > Ma Freebox > Gérer l'option Backup > Résilier mon option Backup Internet > Télécharger pour imprimer votre étiquette de retour point relais.\n* Résilier l'option McAfee Sécurité : Allez sur votre Espace Abonné Freebox > Mon Abonnement > Protéger mes équipements avec McAfee > cliquez sur le lien de résiliation et confirmez.\n* Exercer votre droit de rétractation (sous 14 jours) :\n  - Forfait Mobile : Cliquez sur "Rétractation" tout en bas de https://mobile.free.fr/ depuis votre Espace Abonné (si mobile acheté : retour en LRAR à Free Service Mobile – 91818 Corbeil-Essonnes Cedex).\n  - Nouvelle souscription Freebox : Via Espace Abonné > Mon Abonnement > Plus besoin de mon abonnement (ou courrier à FREEBOX RÉTRACTATION – 6 Rue Désir Prévost – 91075 Bondoufle / appel au {{TEL_ABONNES}}).\n  - Migration Freebox : Ne retirez pas le colis au relais et écrivez à Free Rétractation – 75371 Paris Cedex 08.\n\nBelle journée à vous 😊`
             },
             {
                 cat: "7. 💳 Facturation, Litiges, Retours Matériel & Résiliation",
@@ -1194,7 +1578,7 @@
         const fx = t => t.replace(/\{\{(\w+)\}\}/g, (m, k) => FACTS[k] !== undefined ? FACTS[k] : m);
         const UPSELL_PHRASE = fx(`\n\nPetit plus pour votre fidélité 🎁 Une super offre mobile vous attend, à partir de {{PRIX_FIDELITE}} €/mois en tout illimité. Revenez vers moi, je vous explique tout 😊`);
         // Trames déjà vérifiées sur assistance.free.fr / www.free.fr (07/11/2026)
-        const VERIFIED = ['Pas de tonalité','Vigilance Phishing','Changement de forfait mobile','Modification du nom ou du titulaire','Langue des Signes','Accéder à Freebox OS','Contrôle parental Freebox','Activation 5G+','Espace Abonné Freebox : Créer','Changer le mot de passe Wi-Fi'];
+        const VERIFIED = ['Pas de tonalité','Vigilance Phishing','Changement de forfait mobile','Modification du nom ou du titulaire','Langue des Signes','Accéder à Freebox OS','Contrôle parental Freebox','Activation 5G+','Espace Abonné Freebox : Créer','Changer le mot de passe Wi-Fi','Réclamation officielle par écrit','ODR Frais de résiliation ancien FAI','Demande de résiliation Freebox','Résiliation Free Mobile','Retour Box 4G','Tarif forfait mobile après passage'];
         // Parcours enchaînés : bouton « Suite » vers la trame logique suivante
         const FLOWS = [
             ['Diagnostic Fibre / Box bloquée','Ticket Incident Fibre 1','Ticket Incident Fibre 2','RDV Technicien : Envoi lien','RDV Technicien : Confirmation','Retard Technicien','Clôture suite Intervention Technicien'],
@@ -1211,7 +1595,8 @@
             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
         };
 
-        const customModels = LS.get('fp_custom_models', []);
+        const rawCustom = LS.get('fp_custom_models', []);
+        const customModels = Array.isArray(rawCustom) ? rawCustom.filter(m => m && m.cat && m.title && m.text) : [];
         customModels.forEach(m => m.custom = true);
         let allModels = [...customModels, ...baseModels];
         const favs = new Set(LS.get('fp_favs', []));
@@ -1321,12 +1706,55 @@
             window.open('https://www.google.fr/search?q=site:free.fr+' + encodeURIComponent(q), '_blank');
         }
 
-        const THEMES = [['light', '☀️ Clair'], ['dark', '🌙 Sombre'], ['sw', '⚔️ Star Wars']];
+        const THEMES = [
+            ['light', '☀️ Free.fr', '💡 « Il a Free, il a tout compris » — Sans engagement, prix juste.'],
+            ['dark', '🌙 Sombre', '🚀 « Freebox Ultra : Fibre 8 Gbit/s symétriques & Wi-Fi 7 »'],
+            ['niel', '💻 Niel 42', 'root@freebox:~# _ « 3615 ULLA -> Freebox -> École 42 : Born to code »'],
+            ['sw', '⚔️ Star Wars', '⚔️ « Que la Fibre soit avec vous — Secteur Impérial Proxi »'],
+            ['mando', '🛡️ Mando', '🛡️ « Telle est la Voie (This is the Way) — Forge Beskar Free Proxi »'],
+            ['trek', '🖖 Star Trek', '🖖 « LCARS Starfleet — Longue vie et prospérité à vos paquets IP »']
+        ];
+        const NIEL_QUOTES = [
+            '💡 « Il a Free, il a tout compris » — Sans engagement, prix juste.',
+            '🚀 « Pas de chichis, pas de négociation à la tête du client : le meilleur tarif pour tous. »',
+            '💻 « De la Freebox V1 à la Freebox Ultra : l’ADN de l’innovation télécom. »',
+            '📡 « 5G+ SA 3,5 GHz & Fibre 10G-EPON : la tech au service de l’abonné. »',
+            '🛡️ « Telle est la Voie : diagnostic précis, réponse claire, zéro jargon inutile. »',
+            '🖖 « Journal de bord du Capitaine : tous les répéteurs Wi-Fi 7 sont opérationnels. »'
+        ];
+        let quoteIdx = 0;
+        function nextNielQuote() {
+            quoteIdx = (quoteIdx + 1) % NIEL_QUOTES.length;
+            const q = document.getElementById('nielQuote');
+            if (q) q.textContent = NIEL_QUOTES[quoteIdx];
+        }
+        const AVATARS = {
+            free: `<svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="58" fill="#e1000f"/><circle cx="60" cy="60" r="50" fill="none" stroke="#ffffff" stroke-width="2" stroke-dasharray="6 4" opacity="0.5"/><text x="60" y="68" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="900" font-style="italic" font-size="34" letter-spacing="-1">free</text><rect x="30" y="84" width="60" height="16" rx="8" fill="#111111"/><text x="60" y="95" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-weight="800" font-size="9" letter-spacing="1.5">PROXI</text></svg>`,
+            niel: `<svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="58" fill="#050806" stroke="#00ff66" stroke-width="2"/><text x="60" y="56" text-anchor="middle" fill="#00ff66" font-family="monospace" font-weight="900" font-size="30">&gt;42_</text><text x="60" y="78" text-anchor="middle" fill="#5eead4" font-family="monospace" font-weight="700" font-size="12">1337 FREE</text><rect x="34" y="90" width="52" height="15" rx="4" fill="#e1000f"/><text x="60" y="101" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="900" font-size="9">ILIAD</text></svg>`,
+            sw: `<svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="58" fill="#07090e"/><circle cx="60" cy="60" r="52" fill="none" stroke="#e1000f" stroke-width="1.5" stroke-dasharray="6 4"/><path d="M60 15 C32 15 20 38 17 70 L28 76 L32 52 C35 38 45 30 60 30 C75 30 85 38 88 52 L92 76 L103 70 C100 38 88 15 60 15 Z" fill="#1f242d" stroke="#475569"/><path d="M58 15 L62 15 L63 45 L57 45 Z" fill="#e1000f"/><path d="M30 50 L90 50 L85 86 L60 98 L35 86 Z" fill="#0f1319" stroke="#334155"/><path d="M35 55 Q46 50 54 57 Q46 64 35 59 Z" fill="#e1000f"/><path d="M85 55 Q74 50 66 57 Q74 64 85 59 Z" fill="#e1000f"/><polygon points="60,62 46,84 74,84" fill="#1e242d" stroke="#e1000f"/><rect x="34" y="96" width="52" height="15" rx="4" fill="#e1000f"/><text x="60" y="107" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="900" font-size="10">FREE</text></svg>`,
+            mando: `<svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="58" fill="#1c1917" stroke="#d97706" stroke-width="2"/><path d="M32 45 C32 22 88 22 88 45 L86 88 L68 96 L65 62 L55 62 L52 96 L34 88 Z" fill="#78716c" stroke="#fbbf24" stroke-width="1.5"/><path d="M36 48 L84 48 L82 56 L64 56 L64 92 L56 92 L56 56 L38 56 Z" fill="#090d16"/><rect x="32" y="96" width="56" height="15" rx="4" fill="#d97706"/><text x="60" y="107" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="900" font-size="9" letter-spacing="1">BESKAR</text></svg>`,
+            trek: `<svg class="avatar" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="58" fill="#080a12" stroke="#ff9900" stroke-width="2.5"/><ellipse cx="60" cy="62" rx="34" ry="20" fill="none" stroke="#99ccff" stroke-width="2"/><path d="M60 16 L84 92 L60 72 L36 92 Z" fill="#ff9900" stroke="#ffcc66" stroke-width="1.5"/><polygon points="60,34 65,48 55,48" fill="#080a12"/><rect x="32" y="96" width="56" height="15" rx="6" fill="#cc99cc"/><text x="60" y="107" text-anchor="middle" fill="#000" font-family="Arial" font-weight="900" font-size="9" letter-spacing="1.2">LCARS</text></svg>`
+        };
         function applyTheme(t) {
             if (!THEMES.some(x => x[0] === t)) t = 'light';
             document.documentElement.dataset.theme = t;
-            const b = document.getElementById('themeBtn');
-            if (b) b.textContent = THEMES.find(x => x[0] === t)[1];
+            document.body.dataset.theme = t;
+            const found = THEMES.find(x => x[0] === t);
+            const sel = document.getElementById('themeSelect');
+            if (sel) sel.value = t;
+            const q = document.getElementById('nielQuote');
+            if (q && found[2]) q.textContent = found[2];
+            document.querySelectorAll('.theme-pill').forEach(p => {
+                p.classList.toggle('active', p.dataset.t === t);
+            });
+            const slot = document.getElementById('avatarSlot');
+            if (slot) {
+                if (t === 'niel') slot.innerHTML = AVATARS.niel;
+                else if (t === 'sw') slot.innerHTML = AVATARS.sw;
+                else if (t === 'mando') slot.innerHTML = AVATARS.mando;
+                else if (t === 'trek') slot.innerHTML = AVATARS.trek;
+                else slot.innerHTML = AVATARS.free;
+            }
             LS.set('fp_theme', t);
         }
         function cycleTheme() {
@@ -1508,7 +1936,12 @@
                 btnUpsell.textContent = '+ 🎁 Fidélité';
                 btnUpsell.onclick = () => copyText(ta, btn, k, used, true);
 
-                btnRow.append(btn, btnUpsell);
+                const btnComp = document.createElement('button');
+                btnComp.className = 'btn-compose';
+                btnComp.title = 'Empiler cette trame dans le assembleur Multi-Trames (en bas à droite)';
+                btnComp.textContent = '+ 🧩';
+                btnComp.onclick = () => addToComposer(ta.value);
+                btnRow.append(btn, btnUpsell, btnComp);
                 if (words.length && list.indexOf(i) < 9) btn.textContent = '⚡ Copier [' + (list.indexOf(i) + 1) + ']';
                 const fl = FLOWS.find(f => f.some(t => m.title.includes(t)));
                 if (fl) {
@@ -1565,7 +1998,7 @@
                 usage[key] = (usage[key] || 0) + 1;
                 LS.set('fp_usage', usage);
                 pushRecent(key);
-                usedEl.textContent = 'Utilisé ' + usage[key] + '×';
+                usedEl.textContent = 'Utilisé ' + usage[key] + '×'; updateHud();
                 const o = btn.textContent;
                 btn.textContent = withUpsell ? 'Copié + 🎁 ! ✔' : 'Copié ! ✔';
                 btn.classList.add('copied');
@@ -1699,6 +2132,87 @@
             }
         });
 
+
+        let compParts = [];
+        function copyRaw(txt) {
+            const done = () => toast('Copié dans le presse-papiers ✔');
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done); else done();
+        }
+        function toggleComposer(open) {
+            const dock = document.getElementById('composerDock');
+            if (dock) dock.classList.toggle('open', open);
+        }
+        function stripClosingLine(t) {
+            const parts = t.trim().split(/\n\n+/);
+            if (parts.length > 1 && /(journée|soirée|week-end|bientôt|retour|disponible|😊|⭐)/i.test(parts[parts.length - 1])) {
+                parts.pop();
+            }
+            return parts.join('\n\n');
+        }
+        function stripOpeningHello(t) {
+            return t.replace(/^(Bonjour|Bonsoir)[^\n]*\n\n/i, '');
+        }
+        function addToComposer(txt) {
+            compParts.push(txt.trim());
+            const merged = compParts.map((p, idx) => {
+                let s = p;
+                if (idx > 0) s = stripOpeningHello(s);
+                if (idx < compParts.length - 1) s = stripClosingLine(s);
+                return s;
+            }).join('\n\n');
+            const area = document.getElementById('composerArea');
+            if (area) area.value = adaptClosing(merged);
+            const cnt = document.getElementById('compCount');
+            if (cnt) cnt.textContent = compParts.length;
+            toggleComposer(true);
+            toast('Trame ajoutée à l\'assemblage 🧩 (' + compParts.length + ')');
+        }
+        function clearComposer() {
+            compParts = [];
+            const area = document.getElementById('composerArea');
+            if (area) area.value = '';
+            const cnt = document.getElementById('compCount');
+            if (cnt) cnt.textContent = '0';
+            toast('Assemblage vidé 🧹');
+        }
+        function copyComposer(withUpsell) {
+            const area = document.getElementById('composerArea');
+            if (!area || !area.value.trim()) return toast('Aucune trame dans l\'assemblage');
+            let txt = adaptClosing(area.value.trim());
+            if (withUpsell) {
+                const parts = txt.split('\n\n');
+                if (parts.length > 1) {
+                    const last = parts.pop();
+                    txt = parts.join('\n\n') + '\n\n' + UPSELL_PHRASE.trim() + '\n\n' + last;
+                } else { txt = txt + UPSELL_PHRASE; }
+            }
+            const leftover = txt.match(/\[[^\]]+\]/);
+            if (leftover && !confirm('Ce message assemblé contient encore une variable à compléter (' + leftover[0] + '). Copier quand même ?')) return;
+            const done = () => toast(withUpsell ? 'Assemblage + Fidélité copiés ✔' : 'Assemblage copié ✔');
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done); else { area.select(); document.execCommand('copy'); done(); }
+        }
+
+
+        function updateHud() {
+            const now = new Date();
+            const clk = document.getElementById('hudClock');
+            if (clk) clk.textContent = now.toLocaleTimeString('fr-FR');
+            const stTot = document.getElementById('statTotal');
+            if (stTot) stTot.textContent = allModels.length;
+            const stExp = document.getElementById('statExpert');
+            if (stExp) stExp.textContent = allModels.filter(m => m.expert).length;
+            const stCop = document.getElementById('statCopies');
+            if (stCop) stCop.textContent = Object.values(usage).reduce((a, b) => a + b, 0);
+            const stMod = document.getElementById('statMode');
+            if (stMod) {
+                const tm = timeMode();
+                stMod.textContent = tm === 'weekend' ? '🎉 Week-end' : (tm === 'evening' ? '🌙 Soirée' : '☀️ Journée');
+            }
+        }
+        setInterval(updateHud, 1000);
+
+        initApp();
+        updateHud();
         window.onload = initApp;
     </script>
 </body>
